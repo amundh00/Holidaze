@@ -1,9 +1,18 @@
-function App() {
+import React from "react";
+import Header from "./components/Header";
+import { Outlet } from "react-router-dom";
+
+const App = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center text-2xl font-semibold">
-      Welcome to Holidaze 🌴
-    </div>
+    <>
+      <Header />
+      <main className="p-4">
+        <Outlet />
+        <div className="bg-green text-white p-4">Now Tailwind should fully work ✅</div>
+
+      </main>
+    </>
   );
-}
+};
 
 export default App;

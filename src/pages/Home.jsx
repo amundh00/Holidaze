@@ -1,4 +1,6 @@
-export default function Home() {
-    return <h1 className="text-3xl p-4">🏠 Home – Holidaze</h1>;
-  }
-  
+import React from "react";
+
+const Home = () => <h2>Home Page Content</h2>;
+
+
+export default Home;
