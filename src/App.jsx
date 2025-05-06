@@ -8,8 +8,7 @@ const App = () => {
     <>
       <Header />
       <main>
-        <Outlet />
-
+        <Outlet /> {/* This renders the child route component */}
       </main>
       <Footer />
     </>

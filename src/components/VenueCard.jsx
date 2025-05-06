@@ -7,7 +7,7 @@ const VenueCard = ({ venue, layout = "default" }) => {
 
   return (
     <div
-      className={`bg-white shadow-md rounded-md overflow-hidden ${
+      className={`bg-white shadow-md overflow-hidden ${
         layout === "default" ? "flex flex-col md:flex-row" : "p-4"
       }`}
     >
@@ -32,7 +32,7 @@ const VenueCard = ({ venue, layout = "default" }) => {
         <p className="text-sm text-textGray line-clamp-4">
           {venue.description || "No description available."}
         </p>
-        <button className="mt-4 w-max bg-green text-white px-4 py-2 rounded hover:bg-opacity-90">
+        <button className="mt-4 w-max bg-green text-white px-4 py-2 hover:bg-opacity-90">
           See more
         </button>
       </div>
