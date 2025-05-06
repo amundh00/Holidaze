@@ -1,8 +1,3 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Optional global styles */
-body {
-  @apply bg-background text-textGray font-body;
-}
