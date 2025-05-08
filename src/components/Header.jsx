@@ -1,10 +1,27 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom"; // Use navigate hook to programmatically navigate
 import { FaUser, FaBars, FaTimes } from "react-icons/fa";
 
 const Header = () => {
   const user = localStorage.getItem("user");
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate(); // Hook to navigate programmatically
+
+  const handleVenuesClick = () => {
+    // Navigate to the venues page directly
+    navigate("/venues");
+  };
+
+  const handleLoginLogout = () => {
+    if (user) {
+      // Log out the user
+      localStorage.removeItem("user");
+      window.location.reload(); // Reload the page to reflect the changes
+    } else {
+      // Navigate to the login page if the user is not logged in
+      navigate("/login");
+    }
+  };
 
   return (
     <header className="bg-white border-b shadow-sm px-4 py-4">
@@ -34,16 +51,13 @@ const Header = () => {
             {menuOpen ? <FaTimes /> : <FaBars />}
           </button>
 
-          {/* Desktop: Logout */}
+          {/* Desktop: Logout/Profile */}
           {user && (
             <div className="hidden md:flex items-center gap-2">
               <FaUser className="text-brown text-xl" />
               <button
                 className="text-sm text-textGray underline"
-                onClick={() => {
-                  localStorage.removeItem("user");
-                  window.location.reload();
-                }}
+                onClick={handleLoginLogout}
               >
                 Log Out
               </button>
@@ -55,26 +69,32 @@ const Header = () => {
       {/* Desktop nav */}
       <nav className="hidden md:flex justify-center gap-8 mt-2 text-textGray text-base font-medium">
         <Link to="/">Home</Link>
-        <Link to="/venues">Venues</Link> {/* Updated link here */}
-        {!user && <Link to="/login">Login</Link>}
+        <button onClick={handleVenuesClick} className="text-base font-medium text-textGray">
+          Venues
+        </button>
+        {user ? (
+          <Link to="/profile">Profile</Link>
+        ) : (
+          <Link to="/login">Login</Link>
+        )}
       </nav>
 
       {/* Mobile nav */}
       {menuOpen && (
         <nav className="flex flex-col items-center gap-3 mt-3 text-textGray text-base font-medium md:hidden">
           <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>
-          <Link to="/allvenues" onClick={() => setMenuOpen(false)}>Venues</Link> {/* Updated link here */}
-          {!user && (
+          <button onClick={handleVenuesClick} className="text-base font-medium text-textGray">
+            Venues
+          </button>
+          {user ? (
+            <Link to="/profile" onClick={() => setMenuOpen(false)}>Profile</Link>
+          ) : (
             <Link to="/login" onClick={() => setMenuOpen(false)}>Login</Link>
           )}
           {user && (
             <button
               className="underline text-sm"
-              onClick={() => {
-                localStorage.removeItem("user");
-                setMenuOpen(false);
-                window.location.reload();
-              }}
+              onClick={handleLoginLogout}
             >
               Log Out
             </button>
