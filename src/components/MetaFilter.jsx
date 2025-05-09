@@ -1,3 +1,4 @@
+// src/components/MetaFilter.jsx
 import React from "react";
 import { FaWifi, FaParking, FaCoffee, FaPaw } from "react-icons/fa";
 
@@ -10,10 +11,7 @@ const icons = {
 
 const MetaFilter = ({ filters, setFilters }) => {
   const toggleFilter = (key) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: !prev[key],
-    }));
+    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
   return (
@@ -25,7 +23,7 @@ const MetaFilter = ({ filters, setFilters }) => {
             key={key}
             onClick={() => toggleFilter(key)}
             className={`text-3xl transition-colors duration-200 ${
-              filters[key] ? "text-orange" : "text-gray-400"
+              filters[key] ? "text-green" : "text-gray-400"
             }`}
             title={key}
           >

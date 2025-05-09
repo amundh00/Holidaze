@@ -1,45 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
+import SearchBar from "../components/SearchBar";
+import MetaFilter from "../components/MetaFilter";
 import { fetchVenues } from "../utils/fetchData";
-import { FaWifi, FaParking, FaCoffee, FaPaw } from "react-icons/fa";
 
 const PAGE_SIZE = 24;
 const SEARCH_DEBOUNCE_MS = 500;
-
-// SearchBar component
-const SearchBar = ({ searchTerm, setSearchTerm, placeholder = "Search venues..." }) => (
-  <div className="w-full max-w-md mx-auto mb-6">
-    <input
-      type="text"
-      value={searchTerm}
-      onChange={(e) => setSearchTerm(e.target.value)}
-      placeholder={placeholder}
-      className="w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-green focus:border-green text-gray-700"
-    />
-  </div>
-);
-
-// MetaFilter component
-const icons = { wifi: <FaWifi />, parking: <FaParking />, breakfast: <FaCoffee />, pets: <FaPaw /> };
-const MetaFilter = ({ filters, setFilters }) => {
-  const toggleFilter = (key) => setFilters(prev => ({ ...prev, [key]: !prev[key] }));
-  return (
-    <div className="flex flex-col items-center mb-6">
-      <p className="text-gray-700 font-medium mb-2">Toggle facilities:</p>
-      <div className="flex space-x-6">
-        {Object.keys(filters).map(key => (
-          <button
-            key={key}
-            onClick={() => toggleFilter(key)}
-            className={`text-3xl transition-colors duration-200 ${filters[key] ? "text-green" : "text-gray-400"}`}
-            title={key}
-          >
-            {icons[key]}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 const AllVenues = () => {
   const [venues, setVenues] = useState([]);
@@ -51,43 +16,39 @@ const AllVenues = () => {
   const [hasMore, setHasMore] = useState(true);
   const [filters, setFilters] = useState({ wifi: false, parking: false, breakfast: false, pets: false });
 
-  // debounce search input
+  // Debounce search input
   useEffect(() => {
     const handler = setTimeout(() => setDebouncedSearch(searchTerm.trim().toLowerCase()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(handler);
   }, [searchTerm]);
 
-  const loadVenues = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await fetchVenues(PAGE_SIZE, offset);
-      const list = Array.isArray(data.data) ? data.data : [];
-      setVenues(prev => offset === 0 ? list : [...prev, ...list]);
-      setHasMore(list.length === PAGE_SIZE);
-    } catch (err) {
-      console.error(err);
-      setError(err.message || "Failed to load venues");
-    } finally {
-      setLoading(false);
-    }
+  // Fetch venues only on offset change (initial load and pagination)
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await fetchVenues({ limit: PAGE_SIZE, offset });
+        const list = Array.isArray(data.data) ? data.data : [];
+        setVenues(prev => (offset === 0 ? list : [...prev, ...list]));
+        setHasMore(list.length === PAGE_SIZE);
+      } catch (err) {
+        console.error(err);
+        setError(err.message || "Failed to load venues");
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
   }, [offset]);
 
-  // fetch on mount/offset
-  useEffect(() => { loadVenues(); }, [loadVenues]);
-  // reset offset when base query changes
-  useEffect(() => setOffset(0), [debouncedSearch, filters]);
-
-  // apply client-side filtering
-  const filteredVenues = venues.filter(v => {
-    const matchesSearch = debouncedSearch === "" || v.name?.toLowerCase().includes(debouncedSearch);
-    const matchesFilters = Object.entries(filters).every(([key, active]) => !active || v.meta?.[key]);
-    return matchesSearch && matchesFilters;
-  });
-
-  // decide list and load more visibility
+  // Client-side filtering based on debouncedSearch and filters
+  const filtered = venues.filter(v =>
+    (debouncedSearch === "" || v.name.toLowerCase().includes(debouncedSearch)) &&
+    Object.entries(filters).every(([k, active]) => !active || v.meta?.[k])
+  );
   const isFiltering = debouncedSearch !== "" || Object.values(filters).some(Boolean);
-  const displayed = isFiltering ? filteredVenues : venues;
+  const displayed = isFiltering ? filtered : venues;
 
   if (loading && offset === 0) return <p className="text-center mt-10 text-gray-600">Loading venues...</p>;
   if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
