@@ -7,18 +7,20 @@ import Home from "./pages/Home";
 import AllVenues from "./pages/AllVenues";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
-import SignUp from "./pages/SignUp"; // Add this import for the SignUp page
+import SignUp from "./pages/SignUp";
+import VenueDetails from "./pages/VenueDetails"; // 👈 Importer denne
 
 const router = createBrowserRouter([
   {
     path: "/",
     element: <App />,
     children: [
-      { path: "", element: <Home /> }, // Home route
-      { path: "venues", element: <AllVenues /> }, // Venues route for all users
-      { path: "login", element: <Login /> }, // Login page route
-      { path: "profile", element: <Profile /> }, // Profile route for logged-in users
-      { path: "signup", element: <SignUp /> }, // Add this route for the SignUp page
+      { path: "", element: <Home /> },
+      { path: "venues", element: <AllVenues /> },
+      { path: "venues/:id", element: <VenueDetails /> }, // 👈 Ny detaljside
+      { path: "login", element: <Login /> },
+      { path: "profile", element: <Profile /> },
+      { path: "signup", element: <SignUp /> },
     ],
   },
 ]);

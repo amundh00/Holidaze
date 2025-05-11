@@ -1,0 +1,106 @@
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import { FaWifi, FaParking, FaUtensils, FaPaw, FaStar } from "react-icons/fa";
+import BookingModal from "../components/BookingModal"; 
+
+const VenueDetails = () => {
+  const { id } = useParams();
+  const [venue, setVenue] = useState(null);
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+
+  const API = import.meta.env.VITE_NOROFF_API_URL;
+  const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
+  const accessToken = localStorage.getItem("accessToken");
+
+  useEffect(() => {
+    const url = `${API}/holidaze/venues/${id}?_owner=true`;
+    fetch(url, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Noroff-API-Key": API_KEY,
+      },
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error(`Venue fetch failed (HTTP ${res.status})`);
+        return res.json();
+      })
+      .then(({ data }) => setVenue(data))
+      .catch((err) => setError(err.message));
+  }, [id, API, API_KEY, accessToken]);
+
+  if (error) return <div className="p-4 text-red-600">{error}</div>;
+  if (!venue) return <div className="p-4">Laster sted...</div>;
+
+  const image = venue.media?.[0]?.url || "https://placehold.co/1200x800?text=No+Image";
+
+  return (
+    <div className="bg-[#F3EFEA] min-h-screen py-10 px-6">
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 bg-white p-8 rounded shadow">
+        {/* Image Section */}
+        <div className="relative">
+        <img src={image} alt={venue.name} className="rounded w-full h-auto object-cover" />
+        
+        {venue.media?.filter(img => img.url)?.length > 1 && (
+            <>
+                <button className="absolute top-1/2 left-2 transform -translate-y-1/2 text-white text-2xl">
+                ←
+                </button>
+                <button className="absolute top-1/2 right-2 transform -translate-y-1/2 text-white text-2xl">
+                →
+                </button>
+            </>
+            )}
+        </div>
+
+
+        {/* Info Section */}
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <h1 className="text-3xl font-bold text-[#00473E]">{venue.name}</h1>
+            {venue.rating !== null && (
+              <div className="flex items-center gap-1 text-orange-500 font-medium text-lg">
+                <FaStar className="text-xl" />
+                <span>{venue.rating.toFixed(1)}</span>
+              </div>
+            )}
+          </div>
+
+          <p className="text-gray-700 mb-4">{venue.description}</p>
+
+          <p className="text-gray-500 font-medium mb-1">Facilities:</p>
+          <div className="flex space-x-4 text-orange text-xl mb-4">
+            {venue.meta?.wifi && <FaWifi />}
+            {venue.meta?.parking && <FaParking />}
+            {venue.meta?.breakfast && <FaUtensils />}
+            {venue.meta?.pets && <FaPaw />}
+          </div>
+
+          {/* Owner */}
+          {venue.owner && (
+            <div className="flex items-center gap-4 mb-6">
+              <div>
+                <p className="text-sm text-gray-600">Hosted by</p>
+                <p className="text-base font-medium text-gray-800">{venue.owner.name}</p>
+              </div>
+            </div>
+          )}
+
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-[#00473E] text-white px-6 py-3 rounded hover:bg-[#033b33] transition"
+            >
+            Check availability
+            </button>
+            <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} venue={venue} />
+
+          <div className="mt-6 border rounded h-48 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
+            Leaflet Map
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default VenueDetails;
