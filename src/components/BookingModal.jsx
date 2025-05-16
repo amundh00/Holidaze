@@ -1,63 +1,95 @@
 import React, { useEffect, useState } from "react";
 import { format, eachDayOfInterval } from "date-fns";
-import { DayPicker } from "react-day-picker";
-import "react-day-picker/dist/style.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import "./custom-datepicker.css";
 
 const BookingModal = ({ isOpen, onClose, venue }) => {
   const [bookedDates, setBookedDates] = useState([]);
-  const [selectedRange, setSelectedRange] = useState();
+  const [startDate, setStartDate] = useState(null);
+  const [endDate, setEndDate] = useState(null);
   const [status, setStatus] = useState("");
 
   const API = import.meta.env.VITE_NOROFF_API_URL;
   const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
   const accessToken = localStorage.getItem("accessToken");
-  const customerName = localStorage.getItem("user");
+  const currentUser = localStorage.getItem("user")?.toLowerCase();
 
-  // Normalize a date to midnight
   const normalize = (date) => {
     const d = new Date(date);
     d.setHours(0, 0, 0, 0);
     return d;
   };
 
-  // Fetch booked dates
   useEffect(() => {
     if (!venue?.id) return;
 
-    const url = `${API}/holidaze/venues/${venue.id}/bookings`;
+    const fetchBookings = async () => {
+      if (!venue?.id) return;
 
-    fetch(url, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        "X-Noroff-API-Key": API_KEY,
-      },
-    })
-      .then((res) => res.json())
-      .then(({ data }) => {
+      const url = `${API}/holidaze/venues/${venue.id}/bookings`;
+
+      try {
+        const res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-Noroff-API-Key": API_KEY,
+          },
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData?.message || "Could not fetch bookings");
+        }
+
+        const { data } = await res.json();
+
         const dates = data.flatMap((booking) =>
           eachDayOfInterval({
             start: normalize(booking.dateFrom),
             end: normalize(booking.dateTo),
           })
         );
-        setBookedDates(dates);
-      })
-      .catch((err) => console.error("❌ Failed to load bookings", err));
-  }, [venue]);
 
-  // Handle booking submission
+        setBookedDates(dates);
+      } catch (err) {
+        setBookedDates([]);
+      }
+    };
+
+    fetchBookings();
+  }, [venue?.id]);
+
   const handleBooking = async () => {
-    if (!selectedRange?.from || !selectedRange?.to) {
+    if (!startDate || !endDate) {
       setStatus("❌ Velg gyldige datoer.");
       return;
     }
 
+    if (venue.owner?.name?.toLowerCase() === currentUser) {
+      setStatus("❌ Du kan ikke booke ditt eget venue.");
+      return;
+    }
+
+    const selectedDays = eachDayOfInterval({
+      start: startDate,
+      end: endDate,
+    });
+
+    const isOverlap = selectedDays.some((day) =>
+      bookedDates.some((booked) => booked.toDateString() === day.toDateString())
+    );
+
+    if (isOverlap) {
+      setStatus("❌ Valgte datoer er allerede booket. Prøv et annet intervall.");
+      return;
+    }
+
     const booking = {
-      dateFrom: selectedRange.from.toISOString(),
-      dateTo: selectedRange.to.toISOString(),
+      dateFrom: startDate.toISOString(),
+      dateTo: endDate.toISOString(),
       guests: 1,
       venueId: venue.id,
-      customerName,
     };
 
     try {
@@ -72,21 +104,25 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
       });
 
       if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || "Booking failed.");
+        const errorData = await res.json();
+        throw new Error(errorData?.message || "Booking failed.");
       }
 
       setStatus("✅ Booking successful!");
-      setSelectedRange(undefined);
+      setStartDate(null);
+      setEndDate(null);
     } catch (err) {
       setStatus("❌ " + err.message);
     }
   };
 
+  const isDateDisabled = (date) =>
+    bookedDates.some((booked) => booked.toDateString() === normalize(date).toDateString());
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div className="fixed inset-0 z-[1000] bg-black bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg relative">
         <button
           onClick={onClose}
@@ -97,32 +133,32 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
 
         <h2 className="text-2xl font-bold text-[#00473E] mb-4">Book {venue.name}</h2>
 
-        <DayPicker
-            mode="range"
-            selected={selectedRange}
-            onSelect={(range) => {
-                if (!range) return;
-                const normalize = (date) => {
-                const d = new Date(date);
-                d.setHours(0, 0, 0, 0);
-                return d;
-                };
-                setSelectedRange({
-                from: range.from ? normalize(range.from) : undefined,
-                to: range.to ? normalize(range.to) : undefined,
-                });
+        <div className="mb-4">
+          <DatePicker
+            selected={startDate}
+            onChange={(dates) => {
+              const [start, end] = dates;
+              setStartDate(start);
+              setEndDate(end);
             }}
-            modifiers={{ booked: bookedDates, disabled: bookedDates }}
-            classNames={{
-                day: "rdp-day", // required
-                day_booked: "bg-gray-300 text-gray-500 cursor-not-allowed", // ✅ your style
-                day_disabled: "bg-gray-300 text-gray-500 cursor-not-allowed",
+            startDate={startDate}
+            endDate={endDate}
+            selectsRange
+            inline
+            excludeDates={bookedDates}
+            dayClassName={(date) => {
+              const isBooked = bookedDates.some(
+                (d) => d.toDateString() === date.toDateString()
+              );
+              if (isBooked) console.log("📌 Marked as booked:", date.toDateString());
+              return isBooked ? "booked-date" : undefined;
             }}
-            />
+          />
+        </div>
 
-        {selectedRange?.from && selectedRange?.to && (
+        {startDate && endDate && (
           <p className="text-sm text-gray-700 mt-2">
-            Fra: {format(selectedRange.from, "PPP")} → Til: {format(selectedRange.to, "PPP")}
+            Fra: {format(startDate, "PPP")} → Til: {format(endDate, "PPP")}
           </p>
         )}
 

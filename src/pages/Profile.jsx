@@ -1,4 +1,10 @@
 import React, { useEffect, useState } from "react";
+import EditProfileModal from "../components/EditProfileModal";
+import ListVenueModal from "../components/ListVenueModal";
+import MyBookings from "../components/MyBookings";
+import MyVenues from "../components/MyVenues";
+
+
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -9,6 +15,51 @@ const Profile = () => {
   const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
   const username = localStorage.getItem("user");
   const accessToken = localStorage.getItem("accessToken");
+  const [isEditing, setIsEditing] = useState(false);
+  const [showListVenueModal, setShowListVenueModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("bookings");
+  const [venues, setVenues] = useState([]);
+
+  useEffect(() => {
+  if (!username || !accessToken || !profile?.venueManager) return;
+
+  const fetchVenuesWithOwner = async () => {
+    try {
+      const res = await fetch(`${API}/holidaze/profiles/${username}/venues?_bookings=true`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "X-Noroff-API-Key": API_KEY,
+        },
+      });
+
+
+      if (!res.ok) throw new Error("Failed to load venues");
+      const { data } = await res.json();
+
+      // Fetch each venue with owner
+      const detailedVenues = await Promise.all(
+        data.map((venue) =>
+          fetch(`${API}/holidaze/venues/${venue.id}?_owner=true`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "X-Noroff-API-Key": API_KEY,
+            },
+          }).then((res) => res.ok ? res.json().then(({ data }) => data) : venue)
+        )
+      );
+
+      setVenues(data);
+    } catch (err) {
+      console.error("Venue fetch error:", err.message);
+    }
+  };
+
+  fetchVenuesWithOwner();
+}, [username, accessToken, API, API_KEY, profile?.venueManager]);
+
+
+
+
 
   useEffect(() => {
     if (!username || !accessToken) {
@@ -49,6 +100,29 @@ const Profile = () => {
       .catch((err) => console.error("Booking fetch error:", err.message));
   }, [username, accessToken, API, API_KEY]);
 
+  const handleUnbook = async (bookingId) => {
+  const confirmed = confirm("Are you sure you want to cancel this booking?");
+  if (!confirmed) return;
+
+  try {
+    const res = await fetch(`${API}/holidaze/bookings/${bookingId}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Noroff-API-Key": API_KEY,
+      },
+    });
+
+    if (!res.ok) throw new Error("Failed to cancel booking");
+
+    // Remove the booking from local state
+    setBookings((prev) => prev.filter((b) => b.id !== bookingId));
+  } catch (err) {
+    alert("Could not cancel booking: " + err.message);
+  }
+};
+
+
   if (error) return <div className="p-4 text-red-600">{error}</div>;
   if (!profile) return <div className="p-4">Loading profile...</div>;
 
@@ -66,44 +140,125 @@ const Profile = () => {
         )}
 
         <h1 className="text-xl font-semibold text-[#4e392f]">{profile.name}</h1>
+
+        {/* ✅ Show if user is a Venue Manager */}
+        {profile.venueManager && (
+          <div className="mt-1 mb-2">
+            <span className="inline-block bg-orange text-white text-xs font-semibold px-3 py-1">
+              Venue Manager
+            </span>
+          </div>
+        )}
+
         <p className="text-sm text-gray-600 mb-4">{profile.bio || "Biography"}</p>
 
-        <button className="bg-[#2a5d53] text-white px-4 py-2 rounded-md mb-6 hover:bg-[#244e47] transition">
+        <button
+          onClick={() => setIsEditing(true)}
+          className="bg-[#2a5d53] text-white px-4 py-2 mb-6 hover:bg-[#244e47] transition"
+        >
           Edit Profile
         </button>
 
-        <h2 className="text-lg font-medium text-gray-800 mb-4">Upcoming bookings:</h2>
+        {profile.venueManager && (
+          <button
+            onClick={() => setShowListVenueModal(true)}
+            className="bg-orange text-white px-4 py-2 mb-6 ml-4 hover:bg-opacity-90 transition"
+          >
+            List a Venue
+          </button>
+        )}
 
-        {bookings.length === 0 ? (
-          <p className="text-gray-500">Ingen kommende bookinger funnet.</p>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {bookings.map((booking) => {
-              const venue = booking.venue;
-              return (
-                <div key={booking.id} className="bg-white rounded shadow overflow-hidden">
-                  <img
-                    src={venue?.media?.[0]?.url || "https://via.placeholder.com/600x400"}
-                    alt={venue?.media?.[0]?.alt || "Venue image"}
-                    className="w-full h-40 object-cover"
-                  />
-                  <div className="p-4 text-left">
-                    <h3 className="text-lg font-semibold text-[#4e392f] mb-2">{venue?.name || "Ukjent sted"}</h3>
-                    <div className="text-sm text-gray-600 mb-2 flex items-center justify-between">
-                      <span>{new Date(booking.dateFrom).toLocaleDateString()}</span>
-                      <span className="mx-1">→</span>
-                      <span>{new Date(booking.dateTo).toLocaleDateString()}</span>
-                    </div>
-                    <button className="bg-[#00473E] text-white text-sm px-3 py-1 rounded hover:bg-[#033b33] transition">
-                      Se detaljer
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+        {profile.venueManager && (
+          <div className="flex justify-center gap-4 mb-6">
+            <button
+              onClick={() => setActiveTab("bookings")}
+              className={`px-4 py-2 ${
+                activeTab === "bookings"
+                  ? "bg-[#00473E] text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              My Bookings
+            </button>
+            <button
+              onClick={() => setActiveTab("venues")}
+              className={`px-4 py-2 ${
+                activeTab === "venues"
+                  ? "bg-[#00473E] text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              My Venues
+            </button>
           </div>
         )}
+
+        {/* If not a venue manager, skip tab UI */}
+        {!profile.venueManager && (
+          <h2 className="text-lg font-medium text-gray-800 mb-4">My Bookings:</h2>
+        )}
+
+        {/* Render tab content */}
+        {activeTab === "bookings" && (
+          <MyBookings bookings={bookings} onUnbook={handleUnbook} />
+        )}
+
+        {activeTab === "venues" && profile.venueManager && (
+          <MyVenues venues={venues} />
+        )}
+
       </div>
+      {isEditing && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setIsEditing(false)}
+          onSave={async (updatedData) => {
+          try {
+            const res = await fetch(`${API}/holidaze/profiles/${username}`, {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+                "X-Noroff-API-Key": API_KEY,
+              },
+              body: JSON.stringify(updatedData),
+            });
+
+            if (!res.ok) throw new Error("Failed to update profile");
+
+            const { data } = await res.json();
+            setProfile(data); // update local state
+          } catch (err) {
+            alert("Feil ved oppdatering av profil: " + err.message);
+          }
+        }}
+        />
+      )}
+
+      {showListVenueModal && (
+      <ListVenueModal
+        onClose={() => setShowListVenueModal(false)}
+        onSave={async (venueData) => {
+          try {
+            const res = await fetch(`${API}/holidaze/venues`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+                "X-Noroff-API-Key": API_KEY,
+              },
+              body: JSON.stringify(venueData),
+            });
+
+            if (!res.ok) throw new Error("Failed to list venue");
+
+            alert("Venue listed successfully!");
+          } catch (err) {
+            alert("Error: " + err.message);
+          }
+        }}
+      />
+    )}
     </div>
   );
 };

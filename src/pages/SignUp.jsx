@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaUser, FaLock, FaEnvelope } from "react-icons/fa";
 
 const SignUp = () => {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [name, setName]               = useState("");
+  const [email, setEmail]             = useState("");
+  const [password, setPassword]       = useState("");
   const [venueManager, setVenueManager] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const navigate = useNavigate();
+  const navigate                      = useNavigate();
 
   const API_URL = import.meta.env.VITE_NOROFF_API_URL;
   const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
@@ -30,10 +31,8 @@ const SignUp = () => {
       name,
       email,
       password,
-      ...(venueManager && { venueManager: true }), // legg kun med hvis true
+      ...(venueManager && { venueManager: true }),
     };
-
-    console.log("Registrerer bruker med data:", userData);
 
     try {
       const response = await fetch(`${API_URL}/auth/register`, {
@@ -49,77 +48,84 @@ const SignUp = () => {
         navigate("/login");
       } else {
         const errorData = await response.json();
-        console.error("Feil fra API:", errorData);
-        console.log("Detaljerte feil:", errorData.errors);
         setErrorMessage(errorData.errors?.[0]?.message || "Registrering feilet");
       }
     } catch (err) {
-      console.error("Uventet feil:", err);
       setErrorMessage("Noe gikk galt. Prøv igjen senere.");
     }
   };
 
   return (
-    <div className="bg-background min-h-screen flex items-center justify-center">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded-lg shadow-lg w-96 space-y-4">
-        <h2 className="text-2xl font-semibold text-center text-green">Lag en konto</h2>
+    <div className="min-h-screen flex items-center justify-center bg-[#EFEAE2]">
+      <form onSubmit={handleSubmit} className="bg-white p-10 rounded shadow max-w-lg w-full space-y-6">
+        <h2 className="text-3xl font-bold text-[#00473E] text-center mb-2">Lag en konto</h2>
 
-        <div className="flex flex-col">
-          <label className="text-sm text-textGray mb-1">Brukernavn</label>
+        {errorMessage && (
+          <p className="text-red-600 text-center mb-2 text-sm">{errorMessage}</p>
+        )}
+
+        {/* VenueManager Switch */}
+        <div className="flex items-center justify-between">
+          <label className="text-sm text-gray-700 font-medium">Planlegger du å liste venues?</label>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={venueManager}
+              onChange={() => setVenueManager(!venueManager)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green rounded-full peer dark:bg-gray-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange" />
+          </label>
+        </div>
+
+        {/* Name Field */}
+        <div className="relative">
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green"
+            placeholder="Brukernavn"
             required
+            className="w-full border-b border-gray-300 py-2 pl-10"
           />
+          <FaUser className="absolute left-2 top-2.5 text-orange" />
         </div>
 
-        <div className="flex flex-col">
-          <label className="text-sm text-textGray mb-1">E-post</label>
+        {/* Email Field */}
+        <div className="relative">
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green"
+            placeholder="E-post"
             required
+            className="w-full border-b border-gray-300 py-2 pl-10"
           />
+          <FaEnvelope className="absolute left-2 top-2.5 text-orange" />
         </div>
 
-        <div className="flex flex-col">
-          <label className="text-sm text-textGray mb-1">Passord</label>
+        {/* Password Field */}
+        <div className="relative">
           <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="border border-gray-300 px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green"
+            placeholder="Passord"
             required
+            className="w-full border-b border-gray-300 py-2 pl-10"
           />
+          <FaLock className="absolute left-2 top-2.5 text-orange text-lg" />
         </div>
 
-        <div className="flex items-center space-x-2">
-          <input
-            type="checkbox"
-            checked={venueManager}
-            onChange={() => setVenueManager(!venueManager)}
-            className="focus:ring-2 focus:ring-green"
-          />
-          <label className="text-sm text-textGray">Jeg ønsker å opprette venues</label>
-        </div>
-
-        <button type="submit" className="w-full bg-green text-white py-2 rounded-md hover:bg-opacity-90">
+        {/* Submit Button */}
+        <button type="submit" className="w-full bg-[#00473E] text-white py-2 rounded-md">
           Registrer deg
         </button>
 
-        {errorMessage && (
-          <p className="text-sm text-red-600 text-center">{errorMessage}</p>
-        )}
-
-        <p className="text-sm text-center text-textGray">
+        {/* Login Redirect */}
+        <p className="text-sm text-center">
           Har du allerede en konto?{" "}
-          <a href="/login" className="text-orange hover:underline">
-            Logg inn
-          </a>
+          <a href="/login" className="text-orange underline">Logg inn</a>
         </p>
       </form>
     </div>

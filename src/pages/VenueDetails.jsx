@@ -1,7 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { FaWifi, FaParking, FaUtensils, FaPaw, FaStar } from "react-icons/fa";
-import BookingModal from "../components/BookingModal"; 
+import BookingModal from "../components/BookingModal";
+
+import { MapContainer, TileLayer, Marker } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import L from "leaflet";
+
+// Fix Leaflet marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
+});
 
 const VenueDetails = () => {
   const { id } = useParams();
@@ -14,7 +25,17 @@ const VenueDetails = () => {
   const accessToken = localStorage.getItem("accessToken");
 
   useEffect(() => {
-    const url = `${API}/holidaze/venues/${id}?_owner=true`;
+    if (showModal) {
+      document.body.classList.add("modal-open");
+    } else {
+      document.body.classList.remove("modal-open");
+    }
+
+    return () => document.body.classList.remove("modal-open");
+  }, [showModal]);
+
+  useEffect(() => {
+    const url = `${API}/holidaze/venues/${id}`;
     fetch(url, {
       headers: {
         Authorization: `Bearer ${accessToken}`,
@@ -33,26 +54,26 @@ const VenueDetails = () => {
   if (!venue) return <div className="p-4">Laster sted...</div>;
 
   const image = venue.media?.[0]?.url || "https://placehold.co/1200x800?text=No+Image";
+  const { lat, lng } = venue.location || {};
 
   return (
     <div className="bg-[#F3EFEA] min-h-screen py-10 px-6">
       <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 bg-white p-8 rounded shadow">
         {/* Image Section */}
         <div className="relative">
-        <img src={image} alt={venue.name} className="rounded w-full h-auto object-cover" />
-        
-        {venue.media?.filter(img => img.url)?.length > 1 && (
-            <>
-                <button className="absolute top-1/2 left-2 transform -translate-y-1/2 text-white text-2xl">
-                ←
-                </button>
-                <button className="absolute top-1/2 right-2 transform -translate-y-1/2 text-white text-2xl">
-                →
-                </button>
-            </>
-            )}
-        </div>
+          <img src={image} alt={venue.name} className="rounded w-full h-auto object-cover" />
 
+          {venue.media?.filter((img) => img.url)?.length > 1 && (
+            <>
+              <button className="absolute top-1/2 left-2 transform -translate-y-1/2 text-white text-2xl">
+                ←
+              </button>
+              <button className="absolute top-1/2 right-2 transform -translate-y-1/2 text-white text-2xl">
+                →
+              </button>
+            </>
+          )}
+        </div>
 
         {/* Info Section */}
         <div>
@@ -89,13 +110,28 @@ const VenueDetails = () => {
           <button
             onClick={() => setShowModal(true)}
             className="bg-[#00473E] text-white px-6 py-3 rounded hover:bg-[#033b33] transition"
-            >
+          >
             Check availability
-            </button>
-            <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} venue={venue} />
+          </button>
+          <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} venue={venue} />
 
-          <div className="mt-6 border rounded h-48 flex items-center justify-center bg-gray-100 text-gray-500 text-sm">
-            Leaflet Map
+          {/* Leaflet Map */}
+          <div className="mt-6 h-60 w-full rounded overflow-hidden border border-gray-300">
+            {lat && lng && lat !== 0 && lng !== 0 ? (
+              <MapContainer
+                center={[lat, lng]}
+                zoom={13}
+                scrollWheelZoom={false}
+                style={{ height: "100%", width: "100%" }}
+              >
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                <Marker position={[lat, lng]} />
+              </MapContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+                No location data available
+              </div>
+            )}
           </div>
         </div>
       </div>

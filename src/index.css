@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import "leaflet/dist/leaflet.css";
 
 
 .booked {
@@ -9,3 +10,8 @@
   cursor: not-allowed;
   pointer-events: none;
 }
+
+.modal-open .leaflet-control-container {
+  display: none !important;
+}
+
