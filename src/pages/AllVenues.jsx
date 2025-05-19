@@ -1,57 +1,114 @@
-import React, { useState, useEffect } from "react";
+// Updated AllVenues.jsx to clear filters when search is emptied
+import { useEffect, useState, useRef } from "react";
+import { fetchVenues } from "../utils/fetchData";
 import SearchBar from "../components/SearchBar";
 import MetaFilter from "../components/MetaFilter";
-import { fetchVenues } from "../utils/fetchData";
 
-const PAGE_SIZE = 24;
-const SEARCH_DEBOUNCE_MS = 500;
+const PAGE_LIMIT = 12;
 
 const AllVenues = () => {
+  const [allVenues, setAllVenues] = useState([]);
   const [venues, setVenues] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [offset, setOffset] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
   const [filters, setFilters] = useState({ wifi: false, parking: false, breakfast: false, pets: false });
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const loadMoreRef = useRef(null);
 
-  // Debounce search input
-  useEffect(() => {
-    const handler = setTimeout(() => setDebouncedSearch(searchTerm.trim().toLowerCase()), SEARCH_DEBOUNCE_MS);
-    return () => clearTimeout(handler);
-  }, [searchTerm]);
+  const filtersActive = searchTerm.trim() !== "" || Object.values(filters).some(Boolean);
 
-  // Fetch venues only on offset change (initial load and pagination)
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const data = await fetchVenues({ limit: PAGE_SIZE, offset });
-        const list = Array.isArray(data.data) ? data.data : [];
-        setVenues(prev => (offset === 0 ? list : [...prev, ...list]));
-        setHasMore(list.length === PAGE_SIZE);
-      } catch (err) {
-        console.error(err);
-        setError(err.message || "Failed to load venues");
-      } finally {
-        setLoading(false);
+    const controller = new AbortController();
+
+    async function loadVenues() {
+      if (filtersActive) {
+        let tempPage = 1;
+        let fetchedAll = false;
+        const collected = [];
+
+        while (!fetchedAll) {
+          try {
+            const query = `sort=created&sortOrder=desc&page=${tempPage}&limit=100`;
+            const data = await fetchVenues(query, { signal: controller.signal });
+
+            if (!Array.isArray(data?.data) || data.data.length === 0) {
+              fetchedAll = true;
+              break;
+            }
+
+            collected.push(...data.data);
+
+            if (data.data.length < 100) {
+              fetchedAll = true;
+            } else {
+              tempPage++;
+              await new Promise((r) => setTimeout(r, 300));
+            }
+          } catch (error) {
+            if (error.name !== "AbortError") {
+              console.error("Error loading venues:", error);
+            }
+            fetchedAll = true;
+          }
+        }
+
+        setAllVenues(collected);
+        setVenues(
+          collected.filter((v) =>
+            (searchTerm.trim() === "" || v.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+            Object.entries(filters).every(([k, active]) => !active || v.meta?.[k])
+          )
+        );
+        setHasMore(false);
+        setInitialLoading(false);
+      } else {
+        try {
+          setLoadingMore(true);
+          const query = `sort=created&sortOrder=desc&page=${page}&limit=${PAGE_LIMIT}`;
+          const data = await fetchVenues(query, { signal: controller.signal });
+
+          if (!Array.isArray(data?.data)) {
+            setHasMore(false);
+            return;
+          }
+
+          const newVenues = data.data.filter((v) => !allVenues.some((existing) => existing.id === v.id));
+          setAllVenues((prev) => [...prev, ...newVenues]);
+          setVenues((prev) => [...prev, ...newVenues]);
+
+          if (data.data.length < PAGE_LIMIT) {
+            setHasMore(false);
+          }
+
+          setLoadingMore(false);
+        } catch (error) {
+          if (error.name !== "AbortError") {
+            console.error("Error loading venues:", error);
+          }
+        } finally {
+          setInitialLoading(false);
+        }
       }
-    };
-    load();
-  }, [offset]);
+    }
 
-  // Client-side filtering based on debouncedSearch and filters
-  const filtered = venues.filter(v =>
-    (debouncedSearch === "" || v.name.toLowerCase().includes(debouncedSearch)) &&
-    Object.entries(filters).every(([k, active]) => !active || v.meta?.[k])
-  );
-  const isFiltering = debouncedSearch !== "" || Object.values(filters).some(Boolean);
-  const displayed = isFiltering ? filtered : venues;
+    loadVenues();
 
-  if (loading && offset === 0) return <p className="text-center mt-10 text-gray-600">Loading venues...</p>;
-  if (error) return <p className="text-center mt-10 text-red-500">{error}</p>;
+    return () => controller.abort();
+  }, [page, filtersActive]);
+
+  useEffect(() => {
+    if (searchTerm.trim() === "" && !Object.values(filters).some(Boolean)) {
+      setVenues(allVenues);
+      return;
+    }
+    const filtered = allVenues.filter((v) =>
+      (searchTerm.trim() === "" || v.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      Object.entries(filters).every(([k, active]) => !active || v.meta?.[k])
+    );
+    setVenues(filtered);
+  }, [searchTerm, filters, allVenues]);
 
   return (
     <div className="bg-background min-h-screen">
@@ -60,12 +117,14 @@ const AllVenues = () => {
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         <MetaFilter filters={filters} setFilters={setFilters} />
 
-        {!displayed.length ? (
-          <p className="text-center text-textGray">No venues found.</p>
+        {initialLoading ? (
+          <p className="text-center text-gray-600 mt-10">Loading venues...</p>
+        ) : !venues.length ? (
+          <p className="text-center text-textGray mt-10">No venues found.</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-            {displayed.map(v => (
-              <div key={v.id} className="bg-white shadow-md overflow-hidden">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
+            {venues.map((v) => (
+              <div key={v.id} className="bg-white shadow-md overflow-hidden rounded-xl">
                 <img src={v.media?.[0]?.url || "/default-image.jpg"} alt={v.name} className="w-full h-56 object-cover" />
                 <div className="p-4">
                   <h3 className="text-xl font-heading text-green mb-2">{v.name}</h3>
@@ -80,10 +139,14 @@ const AllVenues = () => {
           </div>
         )}
 
-        {hasMore && !isFiltering && (
-          <div className="text-center mt-10">
-            <button onClick={() => setOffset(prev => prev + PAGE_SIZE)} className="bg-green text-white px-6 py-2 rounded hover:bg-opacity-90">
-              Load More
+        {hasMore && !filtersActive && (
+          <div ref={loadMoreRef} className="text-center mt-10">
+            <button
+              onClick={() => setPage((prev) => prev + 1)}
+              className="bg-green text-white px-6 py-2 rounded hover:bg-opacity-90"
+              disabled={loadingMore}
+            >
+              {loadingMore ? "Loading..." : "Load More"}
             </button>
           </div>
         )}
