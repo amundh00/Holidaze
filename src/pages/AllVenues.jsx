@@ -1,5 +1,6 @@
-// Updated AllVenues.jsx to clear filters when search is emptied
+// AllVenues.jsx with SearchBar and MetaFilter as components
 import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { fetchVenues } from "../utils/fetchData";
 import SearchBar from "../components/SearchBar";
 import MetaFilter from "../components/MetaFilter";
@@ -16,106 +17,71 @@ const AllVenues = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const loadMoreRef = useRef(null);
+  const navigate = useNavigate();
 
-  const filtersActive = searchTerm.trim() !== "" || Object.values(filters).some(Boolean);
+  const isSearchOrFilterActive = searchTerm.trim() !== "" || Object.values(filters).some(Boolean);
 
   useEffect(() => {
     const controller = new AbortController();
 
     async function loadVenues() {
-      if (filtersActive) {
-        let tempPage = 1;
-        let fetchedAll = false;
-        const collected = [];
+      let tempPage = 1;
+      let fetchedAll = false;
+      const collected = [];
 
-        while (!fetchedAll) {
-          try {
-            const query = `sort=created&sortOrder=desc&page=${tempPage}&limit=100`;
-            const data = await fetchVenues(query, { signal: controller.signal });
-
-            if (!Array.isArray(data?.data) || data.data.length === 0) {
-              fetchedAll = true;
-              break;
-            }
-
-            collected.push(...data.data);
-
-            if (data.data.length < 100) {
-              fetchedAll = true;
-            } else {
-              tempPage++;
-              await new Promise((r) => setTimeout(r, 300));
-            }
-          } catch (error) {
-            if (error.name !== "AbortError") {
-              console.error("Error loading venues:", error);
-            }
-            fetchedAll = true;
-          }
-        }
-
-        setAllVenues(collected);
-        setVenues(
-          collected.filter((v) =>
-            (searchTerm.trim() === "" || v.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
-            Object.entries(filters).every(([k, active]) => !active || v.meta?.[k])
-          )
-        );
-        setHasMore(false);
-        setInitialLoading(false);
-      } else {
+      while (!fetchedAll) {
         try {
-          setLoadingMore(true);
-          const query = `sort=created&sortOrder=desc&page=${page}&limit=${PAGE_LIMIT}`;
+          const query = `sort=created&sortOrder=desc&page=${tempPage}&limit=100`;
           const data = await fetchVenues(query, { signal: controller.signal });
 
-          if (!Array.isArray(data?.data)) {
-            setHasMore(false);
-            return;
+          if (!Array.isArray(data?.data) || data.data.length === 0) {
+            fetchedAll = true;
+            break;
           }
 
-          const newVenues = data.data.filter((v) => !allVenues.some((existing) => existing.id === v.id));
-          setAllVenues((prev) => [...prev, ...newVenues]);
-          setVenues((prev) => [...prev, ...newVenues]);
+          collected.push(...data.data);
 
-          if (data.data.length < PAGE_LIMIT) {
-            setHasMore(false);
+          if (data.data.length < 100) {
+            fetchedAll = true;
+          } else {
+            tempPage++;
+            await new Promise((r) => setTimeout(r, 300));
           }
-
-          setLoadingMore(false);
         } catch (error) {
           if (error.name !== "AbortError") {
             console.error("Error loading venues:", error);
           }
-        } finally {
-          setInitialLoading(false);
+          fetchedAll = true;
         }
       }
+
+      setAllVenues(collected);
+      setInitialLoading(false);
     }
 
     loadVenues();
-
     return () => controller.abort();
-  }, [page, filtersActive]);
+  }, []);
 
   useEffect(() => {
-    if (searchTerm.trim() === "" && !Object.values(filters).some(Boolean)) {
-      setVenues(allVenues);
-      return;
-    }
     const filtered = allVenues.filter((v) =>
-      (searchTerm.trim() === "" || v.name.toLowerCase().includes(searchTerm.toLowerCase())) &&
+      (searchTerm.trim() === "" || v.name?.toLowerCase().includes(searchTerm.toLowerCase())) &&
       Object.entries(filters).every(([k, active]) => !active || v.meta?.[k])
     );
     setVenues(filtered);
   }, [searchTerm, filters, allVenues]);
 
+  const toggleFilter = (key) => {
+    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-6xl mx-auto px-4 pt-12">
         <h2 className="text-3xl font-heading text-center text-green mb-8">All Venues</h2>
+
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
-        <MetaFilter filters={filters} setFilters={setFilters} />
+        <MetaFilter filters={filters} toggleFilter={toggleFilter} />
 
         {initialLoading ? (
           <p className="text-center text-gray-600 mt-10">Loading venues...</p>
@@ -132,14 +98,19 @@ const AllVenues = () => {
                     <p className="text-yellow-500 font-semibold">{v.rating} ★</p>
                     <p className="text-green font-bold">{v.price ? `${v.price} Euro/Night` : "Price Unavailable"}</p>
                   </div>
-                  <button className="w-full bg-green text-white py-2 hover:bg-opacity-90 mt-4">Book</button>
+                  <button
+                    onClick={() => navigate(`/venues/${v.id}`)}
+                    className="w-full bg-green text-white py-2 hover:bg-opacity-90 mt-4"
+                  >
+                    Book
+                  </button>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {hasMore && !filtersActive && (
+        {hasMore && !isSearchOrFilterActive && (
           <div ref={loadMoreRef} className="text-center mt-10">
             <button
               onClick={() => setPage((prev) => prev + 1)}

@@ -6,6 +6,7 @@ import BookingModal from "../components/BookingModal";
 import { MapContainer, TileLayer, Marker } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
+import { eachDayOfInterval } from "date-fns";
 
 // Fix Leaflet marker icons
 delete L.Icon.Default.prototype._getIconUrl;
@@ -17,6 +18,7 @@ L.Icon.Default.mergeOptions({
 const VenueDetails = () => {
   const { id } = useParams();
   const [venue, setVenue] = useState(null);
+  const [bookedDates, setBookedDates] = useState([]);
   const [error, setError] = useState("");
   const [showModal, setShowModal] = useState(false);
 
@@ -24,13 +26,18 @@ const VenueDetails = () => {
   const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
   const accessToken = localStorage.getItem("accessToken");
 
+  const normalize = (date) => {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
   useEffect(() => {
     if (showModal) {
       document.body.classList.add("modal-open");
     } else {
       document.body.classList.remove("modal-open");
     }
-
     return () => document.body.classList.remove("modal-open");
   }, [showModal]);
 
@@ -49,6 +56,37 @@ const VenueDetails = () => {
       .then(({ data }) => setVenue(data))
       .catch((err) => setError(err.message));
   }, [id, API, API_KEY, accessToken]);
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      if (!id) return;
+      const url = `${API}/holidaze/bookings?_venue=${id}`;
+
+      try {
+        const res = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "X-Noroff-API-Key": API_KEY,
+          },
+        });
+
+        const { data } = await res.json();
+
+        const dates = data.flatMap((booking) =>
+          eachDayOfInterval({
+            start: normalize(booking.dateFrom),
+            end: normalize(booking.dateTo),
+          })
+        );
+
+        setBookedDates(dates);
+      } catch (err) {
+        setBookedDates([]);
+      }
+    };
+
+    fetchBookings();
+  }, [id]);
 
   if (error) return <div className="p-4 text-red-600">{error}</div>;
   if (!venue) return <div className="p-4">Laster sted...</div>;
@@ -91,13 +129,12 @@ const VenueDetails = () => {
 
           <p className="text-gray-500 font-medium mb-1">Facilities:</p>
           <div className="flex space-x-4 text-orange text-xl mb-4">
-            {venue.meta?.wifi && <FaWifi />}
-            {venue.meta?.parking && <FaParking />}
-            {venue.meta?.breakfast && <FaUtensils />}
-            {venue.meta?.pets && <FaPaw />}
+            {venue.meta?.wifi && <FaWifi />} 
+            {venue.meta?.parking && <FaParking />} 
+            {venue.meta?.breakfast && <FaUtensils />} 
+            {venue.meta?.pets && <FaPaw />} 
           </div>
 
-          {/* Owner */}
           {venue.owner && (
             <div className="flex items-center gap-4 mb-6">
               <div>
@@ -113,7 +150,7 @@ const VenueDetails = () => {
           >
             Check availability
           </button>
-          <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} venue={venue} />
+          <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} venue={venue} bookedDates={bookedDates} />
 
           {/* Leaflet Map */}
           <div className="mt-6 h-60 w-full rounded overflow-hidden border border-gray-300">

@@ -9,11 +9,7 @@ const icons = {
   pets: <FaPaw />,
 };
 
-const MetaFilter = ({ filters, setFilters }) => {
-  const toggleFilter = (key) => {
-    setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
+const MetaFilter = ({ filters, toggleFilter }) => {
   return (
     <div className="flex flex-col items-center mb-6">
       <p className="text-gray-700 font-medium mb-2">Toggle facilities:</p>
@@ -22,9 +18,7 @@ const MetaFilter = ({ filters, setFilters }) => {
           <button
             key={key}
             onClick={() => toggleFilter(key)}
-            className={`text-3xl transition-colors duration-200 ${
-              filters[key] ? "text-green" : "text-gray-400"
-            }`}
+            className={`text-3xl transition-colors duration-200 ${filters[key] ? "text-green" : "text-gray-400"}`}
             title={key}
           >
             {icons[key]}
@@ -35,4 +29,4 @@ const MetaFilter = ({ filters, setFilters }) => {
   );
 };
 
-export default MetaFilter;
+export default MetaFilter;  

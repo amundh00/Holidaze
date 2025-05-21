@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { format, eachDayOfInterval } from "date-fns";
+import React, { useState, useEffect } from "react";
+import { format, eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./custom-datepicker.css";
@@ -9,6 +9,8 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [status, setStatus] = useState("");
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [loading, setLoading] = useState(false);
 
   const API = import.meta.env.VITE_NOROFF_API_URL;
   const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
@@ -25,9 +27,11 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
     if (!venue?.id) return;
 
     const fetchBookings = async () => {
-      if (!venue?.id) return;
+      setLoading(true);
+      const from = startOfMonth(currentMonth).toISOString();
+      const to = endOfMonth(currentMonth).toISOString();
 
-      const url = `${API}/holidaze/venues/${venue.id}/bookings`;
+      const url = `${API}/holidaze/bookings?_venue=${venue.id}&_from=${from}&_to=${to}`;
 
       try {
         const res = await fetch(url, {
@@ -36,11 +40,6 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
             "X-Noroff-API-Key": API_KEY,
           },
         });
-
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData?.message || "Could not fetch bookings");
-        }
 
         const { data } = await res.json();
 
@@ -52,13 +51,15 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
         );
 
         setBookedDates(dates);
-      } catch (err) {
+      } catch {
         setBookedDates([]);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchBookings();
-  }, [venue?.id]);
+  }, [venue?.id, currentMonth]);
 
   const handleBooking = async () => {
     if (!startDate || !endDate) {
@@ -116,9 +117,6 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
     }
   };
 
-  const isDateDisabled = (date) =>
-    bookedDates.some((booked) => booked.toDateString() === normalize(date).toDateString());
-
   if (!isOpen) return null;
 
   return (
@@ -134,26 +132,30 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
         <h2 className="text-2xl font-bold text-[#00473E] mb-4">Book {venue.name}</h2>
 
         <div className="mb-4">
-          <DatePicker
-            selected={startDate}
-            onChange={(dates) => {
-              const [start, end] = dates;
-              setStartDate(start);
-              setEndDate(end);
-            }}
-            startDate={startDate}
-            endDate={endDate}
-            selectsRange
-            inline
-            excludeDates={bookedDates}
-            dayClassName={(date) => {
-              const isBooked = bookedDates.some(
-                (d) => d.toDateString() === date.toDateString()
-              );
-              if (isBooked) console.log("📌 Marked as booked:", date.toDateString());
-              return isBooked ? "booked-date" : undefined;
-            }}
-          />
+          {loading ? (
+            <p className="text-sm text-gray-500">Laster kalender...</p>
+          ) : (
+            <DatePicker
+              selected={startDate}
+              onChange={(dates) => {
+                const [start, end] = dates;
+                setStartDate(start);
+                setEndDate(end);
+              }}
+              startDate={startDate}
+              endDate={endDate}
+              selectsRange
+              inline
+              excludeDates={bookedDates}
+              onMonthChange={(date) => setCurrentMonth(date)}
+              dayClassName={(date) => {
+                const isBooked = bookedDates.some(
+                  (d) => d.toDateString() === date.toDateString()
+                );
+                return isBooked ? "booked-date" : undefined;
+              }}
+            />
+          )}
         </div>
 
         {startDate && endDate && (
