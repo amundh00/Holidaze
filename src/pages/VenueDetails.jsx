@@ -148,7 +148,7 @@ const VenueDetails = () => {
             onClick={() => setShowModal(true)}
             className="bg-[#00473E] text-white px-6 py-3 rounded hover:bg-[#033b33] transition"
           >
-            Check availability
+            Book this venue
           </button>
           <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} venue={venue} bookedDates={bookedDates} />
 

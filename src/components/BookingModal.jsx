@@ -1,95 +1,36 @@
-import React, { useState, useEffect } from "react";
-import { format, eachDayOfInterval, startOfMonth, endOfMonth } from "date-fns";
+import React, { useState } from "react";
+import { Dialog } from "@headlessui/react";
+import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import "./custom-datepicker.css";
 
 const BookingModal = ({ isOpen, onClose, venue }) => {
-  const [bookedDates, setBookedDates] = useState([]);
-  const [startDate, setStartDate] = useState(null);
-  const [endDate, setEndDate] = useState(null);
-  const [status, setStatus] = useState("");
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [loading, setLoading] = useState(false);
+  const [dateFrom, setDateFrom] = useState(null);
+  const [dateTo, setDateTo] = useState(null);
+  const [guests, setGuests] = useState(1);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
 
   const API = import.meta.env.VITE_NOROFF_API_URL;
   const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
   const accessToken = localStorage.getItem("accessToken");
-  const currentUser = localStorage.getItem("user")?.toLowerCase();
 
-  const normalize = (date) => {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  };
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!venue?.id) return;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setSuccess(false);
 
-    const fetchBookings = async () => {
-      setLoading(true);
-      const from = startOfMonth(currentMonth).toISOString();
-      const to = endOfMonth(currentMonth).toISOString();
-
-      const url = `${API}/holidaze/bookings?_venue=${venue.id}&_from=${from}&_to=${to}`;
-
-      try {
-        const res = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "X-Noroff-API-Key": API_KEY,
-          },
-        });
-
-        const { data } = await res.json();
-
-        const dates = data.flatMap((booking) =>
-          eachDayOfInterval({
-            start: normalize(booking.dateFrom),
-            end: normalize(booking.dateTo),
-          })
-        );
-
-        setBookedDates(dates);
-      } catch {
-        setBookedDates([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBookings();
-  }, [venue?.id, currentMonth]);
-
-  const handleBooking = async () => {
-    if (!startDate || !endDate) {
-      setStatus("❌ Velg gyldige datoer.");
+    if (!dateFrom || !dateTo) {
+      setError("Vennligst velg både start- og sluttdato.");
       return;
     }
 
-    if (venue.owner?.name?.toLowerCase() === currentUser) {
-      setStatus("❌ Du kan ikke booke ditt eget venue.");
-      return;
-    }
-
-    const selectedDays = eachDayOfInterval({
-      start: startDate,
-      end: endDate,
-    });
-
-    const isOverlap = selectedDays.some((day) =>
-      bookedDates.some((booked) => booked.toDateString() === day.toDateString())
-    );
-
-    if (isOverlap) {
-      setStatus("❌ Valgte datoer er allerede booket. Prøv et annet intervall.");
-      return;
-    }
-
-    const booking = {
-      dateFrom: startDate.toISOString(),
-      dateTo: endDate.toISOString(),
-      guests: 1,
+    const payload = {
+      dateFrom: dateFrom.toISOString(),
+      dateTo: dateTo.toISOString(),
+      guests,
       venueId: venue.id,
     };
 
@@ -97,85 +38,94 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
       const res = await fetch(`${API}/holidaze/bookings`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
           "X-Noroff-API-Key": API_KEY,
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify(booking),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData?.message || "Booking failed.");
+        throw new Error(errorData.errors?.[0]?.message || "Booking feilet.");
       }
 
-      setStatus("✅ Booking successful!");
-      setStartDate(null);
-      setEndDate(null);
+      setSuccess(true);
+      onClose();
+      navigate("/profile");
     } catch (err) {
-      setStatus("❌ " + err.message);
+      setError(err.message);
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[1000] bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg relative">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-3 text-gray-600 hover:text-black text-xl"
-        >
-          &times;
-        </button>
+    <Dialog open={isOpen} onClose={onClose} className="fixed z-[1000] inset-0 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen p-4">
+        <Dialog.Panel className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
+          <Dialog.Title className="text-xl font-bold mb-4">Book {venue.name}</Dialog.Title>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Fra dato</label>
+              <DatePicker
+                selected={dateFrom}
+                onChange={(date) => setDateFrom(date)}
+                selectsStart
+                startDate={dateFrom}
+                endDate={dateTo}
+                minDate={new Date()}
+                placeholderText="Velg startdato"
+                className="w-full border rounded p-2"
+              />
+            </div>
 
-        <h2 className="text-2xl font-bold text-[#00473E] mb-4">Book {venue.name}</h2>
+            <div>
+              <label className="block text-sm font-medium mb-1">Til dato</label>
+              <DatePicker
+                selected={dateTo}
+                onChange={(date) => setDateTo(date)}
+                selectsEnd
+                startDate={dateFrom}
+                endDate={dateTo}
+                minDate={dateFrom || new Date()}
+                placeholderText="Velg sluttdato"
+                className="w-full border rounded p-2"
+              />
+            </div>
 
-        <div className="mb-4">
-          {loading ? (
-            <p className="text-sm text-gray-500">Laster kalender...</p>
-          ) : (
-            <DatePicker
-              selected={startDate}
-              onChange={(dates) => {
-                const [start, end] = dates;
-                setStartDate(start);
-                setEndDate(end);
-              }}
-              startDate={startDate}
-              endDate={endDate}
-              selectsRange
-              inline
-              excludeDates={bookedDates}
-              onMonthChange={(date) => setCurrentMonth(date)}
-              dayClassName={(date) => {
-                const isBooked = bookedDates.some(
-                  (d) => d.toDateString() === date.toDateString()
-                );
-                return isBooked ? "booked-date" : undefined;
-              }}
-            />
-          )}
-        </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">Antall gjester (maks {venue.maxGuests})</label>
+              <input
+                type="number"
+                min="1"
+                max={venue.maxGuests}
+                value={guests}
+                onChange={(e) => setGuests(Number(e.target.value))}
+                className="w-full border rounded p-2"
+              />
+            </div>
 
-        {startDate && endDate && (
-          <p className="text-sm text-gray-700 mt-2">
-            Fra: {format(startDate, "PPP")} → Til: {format(endDate, "PPP")}
-          </p>
-        )}
+            {error && <p className="text-red-600 text-sm">{error}</p>}
+            {success && <p className="text-green-600 text-sm">Booking vellykket!</p>}
 
-        <button
-          className="mt-6 w-full bg-[#00473E] text-white px-4 py-2 rounded hover:bg-[#033b33] transition"
-          onClick={handleBooking}
-        >
-          Book now
-        </button>
-
-        {status && (
-          <p className="mt-4 text-center text-sm font-medium text-gray-700">{status}</p>
-        )}
+            <div className="flex justify-end space-x-2">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
+              >
+                Avbryt
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-[#00473E] text-white rounded hover:bg-[#033b33]"
+              >
+                Bekreft booking
+              </button>
+            </div>
+          </form>
+        </Dialog.Panel>
       </div>
-    </div>
+    </Dialog>
   );
 };
 

@@ -28,7 +28,7 @@ const LocationPicker = ({ location, setLocation, reverseGeocode }) => {
   ) : null;
 };
 
-const ListVenueModal = ({ onClose, onSave }) => {
+const ListVenueModal = ({ onClose }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [mediaUrl, setMediaUrl] = useState("");
@@ -46,7 +46,7 @@ const ListVenueModal = ({ onClose, onSave }) => {
     city: "",
     zip: "",
     country: "",
-    continent: "",
+    continent: "Europe",
     lat: 60.39,
     lng: 5.32,
   });
@@ -72,8 +72,12 @@ const ListVenueModal = ({ onClose, onSave }) => {
     setMeta((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const API = import.meta.env.VITE_NOROFF_API_URL;
+    const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
+    const accessToken = localStorage.getItem("accessToken");
 
     const venue = {
       name,
@@ -81,12 +85,35 @@ const ListVenueModal = ({ onClose, onSave }) => {
       media: [{ url: mediaUrl, alt: name }],
       price: Number(price),
       maxGuests: Number(maxGuests),
+      rating: 0,
       meta,
-      location,
+      location: {
+        ...location,
+        continent: location.continent || "Europe",
+      },
     };
 
-    onSave(venue);
-    onClose();
+    try {
+      const res = await fetch(`${API}/holidaze/venues`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "X-Noroff-API-Key": API_KEY,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(venue),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.errors?.[0]?.message || "Venue-oppretting feilet.");
+      }
+
+      console.log("Venue opprettet:", await res.json());
+      onClose();
+    } catch (err) {
+      console.error("Feil ved innsending:", err);
+    }
   };
 
   return (
@@ -139,7 +166,7 @@ const ListVenueModal = ({ onClose, onSave }) => {
           <div className="pt-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">Facilities</label>
             <div className="grid grid-cols-2 gap-2">
-              {["wifi", "parking", "breakfast", "pets"].map((key) => (
+              {Object.keys(meta).map((key) => (
                 <button
                   type="button"
                   key={key}

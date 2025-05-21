@@ -1,95 +1,110 @@
-// AllVenues.jsx with SearchBar and MetaFilter as components
-import { useEffect, useState, useRef } from "react";
+// AllVenuesUpdated.jsx
+import { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { fetchVenues } from "../utils/fetchData";
 import SearchBar from "../components/SearchBar";
 import MetaFilter from "../components/MetaFilter";
 
-const PAGE_LIMIT = 12;
+const PAGE_SIZE = 12;
 
-const AllVenues = () => {
-  const [allVenues, setAllVenues] = useState([]);
+const normalizeString = (str) =>
+  str?.toLowerCase().replace(/[-_]/g, " ").replace(/\s+/g, " ").trim() || "";
+
+const AllVenuesUpdated = () => {
   const [venues, setVenues] = useState([]);
+  const [filteredVenues, setFilteredVenues] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({ wifi: false, parking: false, breakfast: false, pets: false });
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const loadMoreRef = useRef(null);
+
   const navigate = useNavigate();
 
-  const isSearchOrFilterActive = searchTerm.trim() !== "" || Object.values(filters).some(Boolean);
-
   useEffect(() => {
-    const controller = new AbortController();
-
-    async function loadVenues() {
-      let tempPage = 1;
-      let fetchedAll = false;
-      const collected = [];
-
-      while (!fetchedAll) {
-        try {
-          const query = `sort=created&sortOrder=desc&page=${tempPage}&limit=100`;
-          const data = await fetchVenues(query, { signal: controller.signal });
-
-          if (!Array.isArray(data?.data) || data.data.length === 0) {
-            fetchedAll = true;
-            break;
-          }
-
-          collected.push(...data.data);
-
-          if (data.data.length < 100) {
-            fetchedAll = true;
-          } else {
-            tempPage++;
-            await new Promise((r) => setTimeout(r, 300));
-          }
-        } catch (error) {
-          if (error.name !== "AbortError") {
-            console.error("Error loading venues:", error);
-          }
-          fetchedAll = true;
+    const fetchVenues = async () => {
+      try {
+        setLoading(true);
+        let all = [];
+        let currentPage = 1;
+        while (true) {
+          const res = await fetch(
+            `${import.meta.env.VITE_NOROFF_API_URL}/holidaze/venues?page=${currentPage}&limit=100`,
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+                "X-Noroff-API-Key": import.meta.env.VITE_NOROFF_API_KEY,
+              },
+            }
+          );
+          const { data } = await res.json();
+          if (!data?.length) break;
+          all = all.concat(data);
+          currentPage++;
         }
+        setVenues(all);
+        setFilteredVenues(all);
+      } catch (err) {
+        console.error("Error fetching venues:", err);
+      } finally {
+        setLoading(false);
       }
-
-      setAllVenues(collected);
-      setInitialLoading(false);
-    }
-
-    loadVenues();
-    return () => controller.abort();
+    };
+    fetchVenues();
   }, []);
 
+  const applyFilters = useCallback(() => {
+    const filtered = venues.filter((v) => {
+      const searchMatch = !searchTerm || v.name?.toLowerCase().includes(searchTerm.toLowerCase());
+      const metaMatch = Object.entries(filters).every(([k, active]) => !active || v.meta?.[k]);
+      return searchMatch && metaMatch;
+    });
+    setFilteredVenues(filtered);
+    setPage(1);
+  }, [searchTerm, filters, venues]);
+
   useEffect(() => {
-    const filtered = allVenues.filter((v) =>
-      (searchTerm.trim() === "" || v.name?.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      Object.entries(filters).every(([k, active]) => !active || v.meta?.[k])
-    );
-    setVenues(filtered);
-  }, [searchTerm, filters, allVenues]);
+    applyFilters();
+  }, [searchTerm, filters, venues]);
 
   const toggleFilter = (key) => {
     setFilters((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const paginated = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredVenues.slice(start, start + PAGE_SIZE);
+  }, [filteredVenues, page]);
+
+  const pageTotal = useMemo(() => Math.max(1, Math.ceil(filteredVenues.length / PAGE_SIZE)), [filteredVenues.length]);
+
+  const getPageNumbers = (currentPage, totalPages) => {
+    const maxPageNumbers = 5;
+    let startPage;
+
+    if (totalPages <= maxPageNumbers || currentPage <= 3) {
+      startPage = 1;
+    } else if (currentPage >= totalPages - 2) {
+      startPage = totalPages - 4;
+    } else {
+      startPage = currentPage - 2;
+    }
+
+    return Array.from({ length: Math.min(maxPageNumbers, totalPages) }, (_, i) => startPage + i);
   };
 
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-6xl mx-auto px-4 pt-12">
         <h2 className="text-3xl font-heading text-center text-green mb-8">All Venues</h2>
-
         <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         <MetaFilter filters={filters} toggleFilter={toggleFilter} />
 
-        {initialLoading ? (
+        {loading ? (
           <p className="text-center text-gray-600 mt-10">Loading venues...</p>
-        ) : !venues.length ? (
+        ) : !filteredVenues.length ? (
           <p className="text-center text-textGray mt-10">No venues found.</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mt-10">
-            {venues.map((v) => (
+            {paginated.map((v) => (
               <div key={v.id} className="bg-white shadow-md overflow-hidden rounded-xl">
                 <img src={v.media?.[0]?.url || "/default-image.jpg"} alt={v.name} className="w-full h-56 object-cover" />
                 <div className="p-4">
@@ -110,15 +125,23 @@ const AllVenues = () => {
           </div>
         )}
 
-        {hasMore && !isSearchOrFilterActive && (
-          <div ref={loadMoreRef} className="text-center mt-10">
-            <button
-              onClick={() => setPage((prev) => prev + 1)}
-              className="bg-green text-white px-6 py-2 rounded hover:bg-opacity-90"
-              disabled={loadingMore}
-            >
-              {loadingMore ? "Loading..." : "Load More"}
-            </button>
+        {filteredVenues.length > PAGE_SIZE && (
+          <div className="text-center mt-10 flex justify-center gap-2 flex-wrap">
+            {page > 1 && (
+              <button onClick={() => setPage(p => p - 1)} className="px-3 py-1 border rounded">Prev</button>
+            )}
+            {getPageNumbers(page, pageTotal).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPage(p)}
+                className={`px-3 py-1 border rounded ${p === page ? 'bg-green text-white' : ''}`}
+              >
+                {p}
+              </button>
+            ))}
+            {page < pageTotal && (
+              <button onClick={() => setPage(p => p + 1)} className="px-3 py-1 border rounded">Next</button>
+            )}
           </div>
         )}
       </div>
@@ -126,4 +149,4 @@ const AllVenues = () => {
   );
 };
 
-export default AllVenues;
+export default AllVenuesUpdated;
