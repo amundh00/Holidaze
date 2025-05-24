@@ -150,7 +150,12 @@ const VenueDetails = () => {
           >
             Book this venue
           </button>
-          <BookingModal isOpen={showModal} onClose={() => setShowModal(false)} venue={venue} bookedDates={bookedDates} />
+          <BookingModal
+            isOpen={showModal}
+            onClose={() => setShowModal(false)}
+            venue={venue}
+            bookedDates={bookedDates}
+          />
 
           {/* Leaflet Map */}
           <div className="mt-6 h-60 w-full rounded overflow-hidden border border-gray-300">

@@ -1,15 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Dialog } from "@headlessui/react";
 import { useNavigate } from "react-router-dom";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { DateRange } from "react-date-range";
+import { addDays } from "date-fns";
+import "react-date-range/dist/styles.css";
+import "react-date-range/dist/theme/default.css";
 
 const BookingModal = ({ isOpen, onClose, venue }) => {
-  const [dateFrom, setDateFrom] = useState(null);
-  const [dateTo, setDateTo] = useState(null);
+  const [range, setRange] = useState({
+    startDate: new Date(),
+    endDate: addDays(new Date(), 1),
+    key: "selection",
+  });
   const [guests, setGuests] = useState(1);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [disabledRanges, setDisabledRanges] = useState([]);
 
   const API = import.meta.env.VITE_NOROFF_API_URL;
   const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
@@ -17,19 +23,98 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
 
   const navigate = useNavigate();
 
+  // Fetch bookings when modal opens to get disabled date ranges
+  useEffect(() => {
+    if (!isOpen || !venue?.id) {
+      setDisabledRanges([]);
+      return;
+    }
+    
+    // Reset disabled ranges when fetching new data
+    setDisabledRanges([]);
+    
+    fetch(`${API}/holidaze/venues/${venue.id}?_bookings=true`, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Noroff-API-Key": API_KEY,
+      },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(json => {
+        // Convert bookings to disabled date ranges for THIS specific venue
+        const bookings = json.data?.bookings || [];
+        console.log(`Fetched ${bookings.length} bookings for venue ${venue.id}:`, venue.name);
+        
+        // Create array of all disabled dates from booking ranges
+        const disabledDatesArray = [];
+        
+        bookings.forEach((booking, index) => {
+          const fromDate = new Date(booking.dateFrom);
+          const toDate = new Date(booking.dateTo);
+          
+          console.log(`  Booking ${index + 1}:`, {
+            from: booking.dateFrom,
+            to: booking.dateTo,
+            fromDate: fromDate.toDateString(),
+            toDate: toDate.toDateString(),
+          });
+          
+          // Generate all dates in the booking range
+          let current = new Date(fromDate);
+          current.setHours(0, 0, 0, 0); // Normalize to start of day
+          
+          const end = new Date(toDate);
+          end.setHours(0, 0, 0, 0); // Normalize to start of day
+          
+          while (current <= end) {
+            disabledDatesArray.push(new Date(current));
+            current.setDate(current.getDate() + 1);
+          }
+        });
+        
+        console.log('Total disabled dates:', disabledDatesArray.length);
+        console.log('Disabled dates:', disabledDatesArray.map(d => d.toDateString()));
+        
+        setDisabledRanges(disabledDatesArray);
+      })
+      .catch(err => {
+        console.error('Failed to fetch venue bookings:', err);
+        setDisabledRanges([]);
+      });
+  }, [isOpen, venue?.id, API, API_KEY, accessToken]);
+
+  // Use useCallback to prevent function recreation on every render
+  const handleDateChange = useCallback((item) => {
+    setRange(item.selection);
+    setError(""); // Clear error when date changes
+  }, []);
+
+  const handleGuestsChange = useCallback((e) => {
+    setGuests(Number(e.target.value));
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
 
-    if (!dateFrom || !dateTo) {
-      setError("Vennligst velg både start- og sluttdato.");
+    const { startDate, endDate } = range;
+    if (!startDate || !endDate || endDate <= startDate) {
+      setError("Vennligst velg en gyldig periode.");
+      return;
+    }
+
+    if (guests < 1 || guests > venue.maxGuests) {
+      setError(`Antall gjester må være mellom 1 og ${venue.maxGuests}.`);
       return;
     }
 
     const payload = {
-      dateFrom: dateFrom.toISOString(),
-      dateTo: dateTo.toISOString(),
+      dateFrom: startDate.toISOString(),
+      dateTo: endDate.toISOString(),
       guests,
       venueId: venue.id,
     };
@@ -51,55 +136,48 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
       }
 
       setSuccess(true);
-      onClose();
-      navigate("/profile");
+      setTimeout(() => {
+        onClose();
+        navigate("/profile");
+      }, 1500);
     } catch (err) {
       setError(err.message);
     }
   };
 
+  // Memoize the DateRange props to prevent unnecessary re-renders
+  const dateRangeProps = useMemo(() => ({
+    ranges: [range],
+    onChange: handleDateChange,
+    minDate: new Date(),
+    disabledDates: disabledRanges, // Use disabledDates instead of disabledRanges
+    moveRangeOnFirstSelection: false,
+    showSelectionPreview: true,
+    editableDateInputs: false,
+    showDateDisplay: false,
+  }), [range, handleDateChange, disabledRanges]);
+
   return (
     <Dialog open={isOpen} onClose={onClose} className="fixed z-[1000] inset-0 overflow-y-auto">
       <div className="flex items-center justify-center min-h-screen p-4">
         <Dialog.Panel className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl">
-          <Dialog.Title className="text-xl font-bold mb-4">Book {venue.name}</Dialog.Title>
+          <Dialog.Title className="text-xl font-bold mb-4">Book {venue?.name}</Dialog.Title>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">Fra dato</label>
-              <DatePicker
-                selected={dateFrom}
-                onChange={(date) => setDateFrom(date)}
-                selectsStart
-                startDate={dateFrom}
-                endDate={dateTo}
-                minDate={new Date()}
-                placeholderText="Velg startdato"
-                className="w-full border rounded p-2"
-              />
+              <label className="block text-sm font-medium mb-1">Velg datoer</label>
+              <DateRange {...dateRangeProps} />
             </div>
 
             <div>
-              <label className="block text-sm font-medium mb-1">Til dato</label>
-              <DatePicker
-                selected={dateTo}
-                onChange={(date) => setDateTo(date)}
-                selectsEnd
-                startDate={dateFrom}
-                endDate={dateTo}
-                minDate={dateFrom || new Date()}
-                placeholderText="Velg sluttdato"
-                className="w-full border rounded p-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Antall gjester (maks {venue.maxGuests})</label>
+              <label className="block text-sm font-medium mb-1">
+                Antall gjester (maks {venue?.maxGuests})
+              </label>
               <input
                 type="number"
                 min="1"
-                max={venue.maxGuests}
+                max={venue?.maxGuests}
                 value={guests}
-                onChange={(e) => setGuests(Number(e.target.value))}
+                onChange={handleGuestsChange}
                 className="w-full border rounded p-2"
               />
             </div>
