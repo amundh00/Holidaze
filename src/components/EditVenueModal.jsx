@@ -33,7 +33,9 @@ const EditVenueModal = ({ venue, onClose, onSave, onDelete }) => {
   const [description, setDescription] = useState(venue.description);
   const [price, setPrice] = useState(venue.price);
   const [maxGuests, setMaxGuests] = useState(venue.maxGuests);
-  const [mediaUrl, setMediaUrl] = useState(venue.media?.[0]?.url || "");
+  const [mediaUrls, setMediaUrls] = useState(
+    venue.media?.map((item) => item.url) || [""]
+  );
   const [meta, setMeta] = useState(venue.meta || {});
   const [location, setLocation] = useState(venue.location || { lat: 60.39, lng: 5.32 });
   
@@ -84,7 +86,9 @@ const EditVenueModal = ({ venue, onClose, onSave, onDelete }) => {
       description,
       price: Number(price),
       maxGuests: Number(maxGuests),
-      media: [{ url: mediaUrl, alt: name }],
+      media: mediaUrls
+      .filter((url) => url.trim() !== "")
+      .map((url) => ({ url: url.trim(), alt: name })),
       meta,
       location,
     };
@@ -96,35 +100,48 @@ const EditVenueModal = ({ venue, onClose, onSave, onDelete }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-auto">
       <div className="bg-white p-6 rounded shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
-        <h2 className="text-xl font-semibold mb-4 text-[#00473E]">Rediger Venue</h2>
+        <h2 className="text-xl font-semibold mb-4 text-[#00473E]">Edit Venue</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
-            placeholder="Navn"
+            placeholder="Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2"
             required
           />
           <textarea
-            placeholder="Beskrivelse"
+            placeholder="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2"
             rows="3"
             required
           />
-          <input
-            type="url"
-            placeholder="Bilde-URL"
-            value={mediaUrl}
-            onChange={(e) => setMediaUrl(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            required
-          />
+          <div>
+            <label className="block text-sm font-medium text-gray-700">Image URLs</label>
+            {mediaUrls.map((url, index) => (
+              <input
+                key={index}
+                type="url"
+                placeholder={`Image URL ${index + 1}`}
+                value={url}
+                onChange={(e) => {
+                  const updated = [...mediaUrls];
+                  updated[index] = e.target.value;
+                  setMediaUrls(updated);
+                  if (index === mediaUrls.length - 1 && e.target.value.trim() !== "") {
+                    setMediaUrls([...updated, ""]);
+                  }
+                }}
+                className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+                required={index === 0}
+              />
+            ))}
+          </div>
           <input
             type="number"
-            placeholder="Pris"
+            placeholder="Price in EUR/Night"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2"
@@ -132,7 +149,7 @@ const EditVenueModal = ({ venue, onClose, onSave, onDelete }) => {
           />
           <input
             type="number"
-            placeholder="Maks gjester"
+            placeholder="Max Guests"
             value={maxGuests}
             onChange={(e) => setMaxGuests(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2"
@@ -197,20 +214,20 @@ const EditVenueModal = ({ venue, onClose, onSave, onDelete }) => {
               onClick={onClose}
               className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-sm"
             >
-              Avbryt
+              Cancel
             </button>
             <button
               type="button"
               onClick={handleDelete}
               className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm"
             >
-              Slett Venue
+              Delete Venue
             </button>
             <button
               type="submit"
               className="px-4 py-2 rounded bg-[#00473E] text-white hover:bg-[#033b33] text-sm"
             >
-              Lagre endringer
+              Save Changes
             </button>
           </div>
         </form>
