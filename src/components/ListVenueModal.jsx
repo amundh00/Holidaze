@@ -30,7 +30,7 @@ const LocationPicker = ({ location, setLocation, reverseGeocode }) => {
 const ListVenueModal = ({ onClose }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaUrls, setMediaUrls] = useState([""]);
   const [price, setPrice] = useState("");
   const [maxGuests, setMaxGuests] = useState("");
   const [meta, setMeta] = useState({
@@ -81,7 +81,12 @@ const ListVenueModal = ({ onClose }) => {
     const venue = {
       name,
       description,
-      media: [{ url: mediaUrl, alt: name }],
+      media: mediaUrls
+      .filter((url) => url.trim() !== "")
+      .map((url) => ({
+        url: url.trim(),
+        alt: name.trim() || "Venue image",
+      })),
       price: Number(price),
       maxGuests: Number(maxGuests),
       rating: 0,
@@ -91,6 +96,9 @@ const ListVenueModal = ({ onClose }) => {
         continent: location.continent || "Europe",
       },
     };
+
+    console.log("Sending venue:", JSON.stringify(venue, null, 2));
+
 
     try {
       const res = await fetch(`${API}/holidaze/venues`, {
@@ -136,17 +144,30 @@ const ListVenueModal = ({ onClose }) => {
             rows="3"
             required
           />
-          <input
-            type="url"
-            placeholder="Image URL"
-            value={mediaUrl}
-            onChange={(e) => setMediaUrl(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2"
-            required
-          />
+          <label className="block text-sm font-medium text-gray-700">Image URLs</label>
+            {mediaUrls.map((url, index) => (
+              <input
+                key={index}
+                type="url"
+                placeholder={`Image URL ${index + 1}`}
+                value={url}
+                onChange={(e) => {
+                  const newUrls = [...mediaUrls];
+                  newUrls[index] = e.target.value;
+                  setMediaUrls(newUrls);
+
+                  // Add a new empty input if this was the last one and it's not empty
+                  if (index === mediaUrls.length - 1 && e.target.value.trim() !== "") {
+                    setMediaUrls([...newUrls, ""]);
+                  }
+                }}
+                className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
+                required={index === 0} // Only require the first image
+              />
+            ))}
           <input
             type="number"
-            placeholder="Price"
+            placeholder="Price in EUR/Night"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
             className="w-full border border-gray-300 rounded px-3 py-2"

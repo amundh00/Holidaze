@@ -6,6 +6,7 @@ import { addDays } from "date-fns";
 import "react-date-range/dist/styles.css";
 import "react-date-range/dist/theme/default.css";
 
+
 const BookingModal = ({ isOpen, onClose, venue }) => {
   const [range, setRange] = useState({
     startDate: new Date(),
@@ -13,6 +14,12 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
     key: "selection",
   });
   const [guests, setGuests] = useState(1);
+    const totalNights = useMemo(() => {
+    const timeDiff = range.endDate.getTime() - range.startDate.getTime();
+    return Math.max(Math.ceil(timeDiff / (1000 * 3600 * 24)), 1);
+  }, [range]);
+
+  const totalPrice = useMemo(() => totalNights * venue.price, [totalNights, venue.price]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [disabledRanges, setDisabledRanges] = useState([]);
@@ -183,6 +190,10 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
 
             {error && <p className="text-red-600 text-sm">{error}</p>}
             {success && <p className="text-green-600 text-sm">Booking vellykket!</p>}
+
+            <div className="text-sm font-medium text-gray-800">
+              Total price for {totalNights} night{totalNights > 1 ? "s" : ""}: €{totalPrice}
+            </div>
 
             <div className="flex justify-end space-x-2">
               <button

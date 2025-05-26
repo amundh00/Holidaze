@@ -1,0 +1,19 @@
+/* Selected date range */
+.rdrDay.rdrDaySelected span,
+.rdrDay.rdrInRange span {
+  background-color: #826845 !important;
+  color: white !important;
+}
+
+/* Start and end of range */
+.rdrDay.rdrStartEdge span,
+.rdrDay.rdrEndEdge span {
+  background-color: #826845 !important;
+  color: white !important;
+}
+
+/* Hover effect */
+.rdrDay:hover span {
+  background-color: #6e573a !important;
+  color: white !important;
+}

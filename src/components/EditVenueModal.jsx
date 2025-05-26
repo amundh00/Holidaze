@@ -27,7 +27,7 @@ const LocationPicker = ({ location, setLocation }) => {
 };
 
 // Modal for å redigere informasjon om et venue
-const EditVenueModal = ({ venue, onClose, onSave }) => {
+const EditVenueModal = ({ venue, onClose, onSave, onDelete }) => {
   // Opprett lokal state for hvert felt som kan redigeres
   const [name, setName] = useState(venue.name);
   const [description, setDescription] = useState(venue.description);
@@ -36,11 +36,44 @@ const EditVenueModal = ({ venue, onClose, onSave }) => {
   const [mediaUrl, setMediaUrl] = useState(venue.media?.[0]?.url || "");
   const [meta, setMeta] = useState(venue.meta || {});
   const [location, setLocation] = useState(venue.location || { lat: 60.39, lng: 5.32 });
+  
 
   // Funksjon for å slå av/på metadata som wifi, parkering, osv.
   const toggleMeta = (key) => {
     setMeta((prev) => ({ ...prev, [key]: !prev[key] }));
   };
+
+  const handleDelete = async () => {
+  const confirmed = window.confirm("Er du sikker på at du vil slette dette venue?");
+  if (!confirmed) return;
+
+  const API = import.meta.env.VITE_NOROFF_API_URL;
+  const API_KEY = import.meta.env.VITE_NOROFF_API_KEY;
+  const accessToken = localStorage.getItem("accessToken");
+
+  try {
+    const res = await fetch(`${API}/holidaze/venues/${venue.id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Noroff-API-Key": API_KEY,
+      },
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.errors?.[0]?.message || "Sletting feilet.");
+    }
+
+    console.log("Venue slettet.");
+    if (onDelete) onDelete(venue.id);
+    onClose();
+  } catch (err) {
+    console.error("Feil ved sletting:", err);
+    alert("Sletting feilet. Prøv igjen.");
+  }
+};
+
 
   // Når brukeren sender inn skjemaet lagres endringene og lukker modalen
   const handleSubmit = (e) => {
@@ -158,12 +191,20 @@ const EditVenueModal = ({ venue, onClose, onSave }) => {
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
+            
             <button
               type="button"
               onClick={onClose}
               className="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400 text-sm"
             >
               Avbryt
+            </button>
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="px-4 py-2 rounded bg-red-600 hover:bg-red-700 text-white text-sm"
+            >
+              Slett Venue
             </button>
             <button
               type="submit"

@@ -9,6 +9,9 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import SignUp from "./pages/SignUp";
 import VenueDetails from "./pages/VenueDetails"; 
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
+
 
 const router = createBrowserRouter([
   {
