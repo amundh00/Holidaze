@@ -3,6 +3,15 @@
 @tailwind utilities;
 @import "leaflet/dist/leaflet.css";
 
+/* Sett Funnel Sans som global brødtekst-font */
+body {
+  @apply font-body;
+}
+
+/* Eksempel: Bruk DM Serif Display på alle overskrifter */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-heading;
+}
 
 .booked {
   background-color: #e5e7eb;
