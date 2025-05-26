@@ -133,7 +133,7 @@ const Profile = () => {
           <img
             src={profile.avatar.url}
             alt={profile.avatar.alt || "Avatar"}
-            className="mx-auto mb-4 w-24 h-24 object-cover border"
+            className="mx-auto mb-4 w-24 h-24 object-cover border rounded-full"
           />
         ) : (
           <div className="mx-auto mb-4 w-24 h-24 bg-gray-300" />
@@ -152,9 +152,10 @@ const Profile = () => {
 
         <p className="text-sm text-gray-600 mb-4">{profile.bio || "Biography"}</p>
 
+        <div className="flex flex-col items-center gap-3 mb-6">
         <button
           onClick={() => setIsEditing(true)}
-          className="bg-[#2a5d53] text-white px-4 py-2 mb-6 hover:bg-[#244e47] transition"
+          className="bg-[#2a5d53] text-white px-4 py-2 hover:bg-[#244e47] transition"
         >
           Edit Profile
         </button>
@@ -162,11 +163,13 @@ const Profile = () => {
         {profile.venueManager && (
           <button
             onClick={() => setShowListVenueModal(true)}
-            className="bg-orange text-white px-4 py-2 mb-6 ml-4 hover:bg-opacity-90 transition"
+            className="bg-orange text-white px-4 py-2 hover:bg-opacity-90 transition"
           >
             List a Venue
           </button>
         )}
+      </div>
+
 
         {profile.venueManager && (
           <div className="flex justify-center gap-4 mb-6">

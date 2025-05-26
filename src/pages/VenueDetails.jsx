@@ -96,43 +96,40 @@ const VenueDetails = () => {
 
   return (
     <div className="bg-[#F3EFEA] min-h-screen py-10 px-6">
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 bg-white p-8 shadow">
-        {/* Bilde seksjon */}
-        <div className="relative">
-          <img src={image} alt={venue.name} className="w-full h-auto object-cover" />
+      <div className="max-w-6xl mx-auto bg-white p-6 md:p-10 shadow space-y-6">
 
-          {venue.media?.filter((img) => img.url)?.length > 1 && (
-            <>
-              <button className="absolute top-1/2 left-2 transform -translate-y-1/2 text-white text-2xl">
-                ←
-              </button>
-              <button className="absolute top-1/2 right-2 transform -translate-y-1/2 text-white text-2xl">
-                →
-              </button>
-            </>
-          )}
+        {/* Bilde øverst */}
+        <div className="aspect-[16/9] w-full overflow-hidden rounded-lg">
+          <img
+            src={image}
+            alt={venue.name}
+            className="w-full h-full object-cover"
+          />
         </div>
 
-        {/* Info seksjon */}
+        {/* Info */}
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-3xl font-bold text-[#00473E]">{venue.name}</h1>
-            {venue.rating !== null && (
-              <div className="flex items-center gap-1 text-orange-500 font-medium text-lg">
-                <FaStar className="text-xl" />
-                <span>{venue.rating.toFixed(1)}</span>
-              </div>
-            )}
-          </div>
+          <h1 className="text-3xl font-bold text-[#00473E] mb-1">
+            {venue.name}
+          </h1>
 
-          <p className="text-gray-700 mb-4">{venue.description}</p>
+          {venue.rating !== null && (
+            <div className="flex items-center gap-1 text-orange-500 font-medium text-lg mb-3">
+              <FaStar className="text-xl" />
+              <span>{venue.rating.toFixed(1)}</span>
+            </div>
+          )}
+
+          <p className="text-gray-700 mb-4 whitespace-pre-wrap">
+            {venue.description}
+          </p>
 
           <p className="text-gray-500 font-medium mb-1">Facilities:</p>
           <div className="flex space-x-4 text-orange text-xl mb-4">
-            {venue.meta?.wifi && <FaWifi />} 
-            {venue.meta?.parking && <FaParking />} 
-            {venue.meta?.breakfast && <FaUtensils />} 
-            {venue.meta?.pets && <FaPaw />} 
+            {venue.meta?.wifi && <FaWifi />}
+            {venue.meta?.parking && <FaParking />}
+            {venue.meta?.breakfast && <FaUtensils />}
+            {venue.meta?.pets && <FaPaw />}
           </div>
 
           {venue.owner && (
@@ -150,31 +147,32 @@ const VenueDetails = () => {
           >
             Book this venue
           </button>
+
           <BookingModal
             isOpen={showModal}
             onClose={() => setShowModal(false)}
             venue={venue}
             bookedDates={bookedDates}
           />
+        </div>
 
-          {/* Leaflet kart */}
-          <div className="mt-6 h-60 w-full overflow-hidden border border-gray-300">
-            {lat && lng && lat !== 0 && lng !== 0 ? (
-              <MapContainer
-                center={[lat, lng]}
-                zoom={13}
-                scrollWheelZoom={false}
-                style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                <Marker position={[lat, lng]} />
-              </MapContainer>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-500 text-sm">
-                No location data available
-              </div>
-            )}
-          </div>
+        {/* Kart nederst */}
+        <div className="h-60 w-full border border-gray-300 rounded-lg">
+          {lat && lng && lat !== 0 && lng !== 0 ? (
+            <MapContainer
+              center={[lat, lng]}
+              zoom={13}
+              scrollWheelZoom={false}
+              className="h-full w-full"
+            >
+              <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+              <Marker position={[lat, lng]} />
+            </MapContainer>
+          ) : (
+            <div className="h-full flex items-center justify-center text-gray-500 text-sm">
+              No location data available
+            </div>
+          )}
         </div>
       </div>
     </div>

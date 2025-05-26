@@ -15,7 +15,7 @@ const MyVenues = ({ venues }) => {
     <>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {venues.map((venue) => (
-          <div key={venue.id} className="bg-white rounded shadow overflow-hidden">
+          <div key={venue.id} className="bg-white shadow overflow-hidden">
             <img
               src={venue?.media?.[0]?.url || "https://via.placeholder.com/600x400"}
               alt={venue?.media?.[0]?.alt || "Venue image"}
@@ -25,17 +25,17 @@ const MyVenues = ({ venues }) => {
               <h3 className="text-lg font-semibold text-[#4e392f] mb-2">{venue.name}</h3>
               <p className="text-sm text-gray-600 mb-2">{venue.description}</p>
               <p className="text-sm text-gray-700 mb-2">
-                💰 {venue.price} kr — 👥 {venue.maxGuests} gjester
+               {venue.price} EURO/Night — Max guests: {venue.maxGuests}
               </p>
               <button
                 onClick={() => setEditingVenue(venue)}
-                className="bg-[#00473E] text-white text-sm px-3 py-1 rounded hover:bg-[#033b33] transition"
+                className="bg-[#00473E] text-white text-sm px-3 py-1 hover:bg-[#033b33] transition"
               >
                 Rediger
               </button>
               <button
                 onClick={() => setSelectedVenueForBookings(venue)}
-                className="bg-orange text-white text-sm px-3 py-1 rounded hover:bg-opacity-90 transition ml-2"
+                className="bg-orange text-white text-sm px-3 py-1 hover:bg-opacity-90 transition ml-2"
               >
                 Se bookinger
               </button>

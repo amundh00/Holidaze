@@ -1,5 +1,9 @@
 // For og vise bookingene til en bruker
+import { useNavigate } from "react-router-dom";
+
 const MyBookings = ({ bookings, onUnbook }) => {
+  const navigate = useNavigate();
+
   if (bookings.length === 0) {
     return <p className="text-gray-500">Ingen kommende bookinger funnet.</p>;
   }
@@ -25,7 +29,10 @@ const MyBookings = ({ bookings, onUnbook }) => {
                 <span>{new Date(booking.dateTo).toLocaleDateString()}</span>
               </div>
               <div className="flex gap-2">
-                <button className="bg-[#00473E] text-white text-sm px-3 py-1 hover:bg-[#033b33] transition">
+                <button
+                  onClick={() => navigate(`/venues/${venue.id}`)}
+                  className="bg-[#00473E] text-white text-sm px-3 py-1 hover:bg-[#033b33] transition"
+                >
                   Se details
                 </button>
                 <button
@@ -44,3 +51,4 @@ const MyBookings = ({ bookings, onUnbook }) => {
 };
 
 export default MyBookings;
+

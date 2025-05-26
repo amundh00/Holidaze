@@ -14,32 +14,38 @@ const Login = () => {
     e.preventDefault();
     setError("");
 
+    // Klient-side validering
+    if (!email || !password) {
+      setError("Please fill in both password and email.");
+      return;
+    }
+
+    if (!email.endsWith("@stud.noroff.no")) {
+      setError("E-mail must end with @stud.noroff.no");
+      return;
+    }
+
     try {
-      const res = await fetch("https://v2.api.noroff.dev/auth/login?_holidaze=true", {
+      const res = await fetch(`${API}/auth/login?_holidaze=true`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(`Login failed (${res.status}): ${err.name || "Unknown error"}`);
+        const errData = await res.json().catch(() => ({}));
+        const apiMsg = errData.errors?.[0]?.message || errData.message || "Unknown error";
+        throw new Error(apiMsg);
       }
 
       const { data } = await res.json();
 
-      // Lagre brukernavn og token i localStorage
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("user", data.name);
 
-      console.log("✅ Login saved:", {
-        user: data.name,
-        token: data.accessToken,
-      });
-
       navigate("/");
     } catch (err) {
-      setError(err.message);
+      setError(`Login Failed: ${err.message}`);
     }
   };
 

@@ -1,7 +1,5 @@
-// src/utils/fetchData.js
-
 export async function fetchData(endpoint, options = {}) {
-    const baseUrl = 'https://v2.api.noroff.dev'; // Update if needed
+    const baseUrl = 'https://v2.api.noroff.dev'; 
     try {
       const response = await fetch(`${baseUrl}${endpoint}`, {
         headers: {

@@ -18,12 +18,27 @@ const SignUp = () => {
     setErrorMessage("");
 
     if (!email.endsWith("@stud.noroff.no")) {
-      setErrorMessage("E-posten må slutte med @stud.noroff.no");
+      setErrorMessage("E-Mail must end with @stud.noroff.no");
       return;
     }
 
     if (password.length < 8) {
-      setErrorMessage("Passord må være minst 8 tegn");
+      setErrorMessage("Password must be at least 8 characters long.");
+      return;
+    }
+
+    if (!/[A-Z]/.test(password)) {
+      setErrorMessage("Password must contain at least one uppercase letter.");
+      return;
+    }
+
+    if (!/[a-z]/.test(password)) {
+      setErrorMessage("Password must contain at least one lowercase letter.");
+      return;
+    }
+
+    if (!/[0-9]/.test(password)) {
+      setErrorMessage("Password must contain at least one number.");
       return;
     }
 
@@ -66,7 +81,9 @@ const SignUp = () => {
 
         {/* Velg om man skal være venuemanger eller ikke */}
         <div className="flex items-center justify-between">
-          <label className="text-sm text-gray-700 font-medium">Planlegger du å liste venues?</label>
+          <label className="text-sm text-gray-700 font-medium">
+            Planlegger du å liste venues?
+          </label>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
               type="checkbox"
@@ -74,7 +91,9 @@ const SignUp = () => {
               onChange={() => setVenueManager(!venueManager)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green peer dark:bg-gray-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange" />
+            <div className="w-11 h-6 bg-gray-200 rounded-full peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-[#FF8358] dark:bg-gray-300 
+            peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] 
+            after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#FF8358]" />
           </label>
         </div>
 

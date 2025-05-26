@@ -8,7 +8,7 @@ import AllVenues from "./pages/AllVenues";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import SignUp from "./pages/SignUp";
-import VenueDetails from "./pages/VenueDetails"; // 👈 Importer denne
+import VenueDetails from "./pages/VenueDetails"; 
 
 const router = createBrowserRouter([
   {
@@ -17,7 +17,7 @@ const router = createBrowserRouter([
     children: [
       { path: "", element: <Home /> },
       { path: "venues", element: <AllVenues /> },
-      { path: "venues/:id", element: <VenueDetails /> }, // 👈 Ny detaljside
+      { path: "venues/:id", element: <VenueDetails /> }, 
       { path: "login", element: <Login /> },
       { path: "profile", element: <Profile /> },
       { path: "signup", element: <SignUp /> },
