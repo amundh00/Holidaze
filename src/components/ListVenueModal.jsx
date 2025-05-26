@@ -71,6 +71,14 @@ const ListVenueModal = ({ onClose }) => {
     setMeta((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  const removeImage = (index) => {
+    const newUrls = mediaUrls.filter((_, i) => i !== index);
+    if (newUrls[newUrls.length - 1].trim() !== "") {
+      newUrls.push("");
+    }
+    setMediaUrls(newUrls);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -82,11 +90,11 @@ const ListVenueModal = ({ onClose }) => {
       name,
       description,
       media: mediaUrls
-      .filter((url) => url.trim() !== "")
-      .map((url) => ({
-        url: url.trim(),
-        alt: name.trim() || "Venue image",
-      })),
+        .filter((url) => url.trim() !== "")
+        .map((url) => ({
+          url: url.trim(),
+          alt: name.trim() || "Venue image",
+        })),
       price: Number(price),
       maxGuests: Number(maxGuests),
       rating: 0,
@@ -96,9 +104,6 @@ const ListVenueModal = ({ onClose }) => {
         continent: location.continent || "Europe",
       },
     };
-
-    console.log("Sending venue:", JSON.stringify(venue, null, 2));
-
 
     try {
       const res = await fetch(`${API}/holidaze/venues`, {
@@ -116,7 +121,6 @@ const ListVenueModal = ({ onClose }) => {
         throw new Error(errorData.errors?.[0]?.message || "Venue-oppretting feilet.");
       }
 
-      console.log("Venue opprettet:", await res.json());
       onClose();
     } catch (err) {
       console.error("Feil ved innsending:", err);
@@ -125,7 +129,7 @@ const ListVenueModal = ({ onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4">
         <h2 className="text-xl font-semibold mb-4 text-[#00473E]">List a New Venue</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
@@ -145,9 +149,9 @@ const ListVenueModal = ({ onClose }) => {
             required
           />
           <label className="block text-sm font-medium text-gray-700">Image URLs</label>
-            {mediaUrls.map((url, index) => (
+          {mediaUrls.map((url, index) => (
+            <div key={index} className="flex items-center gap-2 mb-2">
               <input
-                key={index}
                 type="url"
                 placeholder={`Image URL ${index + 1}`}
                 value={url}
@@ -156,15 +160,24 @@ const ListVenueModal = ({ onClose }) => {
                   newUrls[index] = e.target.value;
                   setMediaUrls(newUrls);
 
-                  // Add a new empty input if this was the last one and it's not empty
                   if (index === mediaUrls.length - 1 && e.target.value.trim() !== "") {
                     setMediaUrls([...newUrls, ""]);
                   }
                 }}
-                className="w-full border border-gray-300 rounded px-3 py-2 mb-2"
-                required={index === 0} // Only require the first image
+                className="w-full border border-gray-300 rounded px-3 py-2"
+                required={index === 0}
               />
-            ))}
+              {mediaUrls.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => removeImage(index)}
+                  className="text-red-500 text-sm hover:underline"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          ))}
           <input
             type="number"
             placeholder="Price in EUR/Night"
@@ -182,7 +195,6 @@ const ListVenueModal = ({ onClose }) => {
             required
           />
 
-          {/* Knapper for og velge faciliteter */}
           <div className="pt-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">Facilities</label>
             <div className="grid grid-cols-2 gap-2">
@@ -203,7 +215,6 @@ const ListVenueModal = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Kart velger leaflet */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Choose location</label>
             <p className="text-xs text-gray-500 mb-2">Click on the map to choose location of venue.</p>
@@ -251,7 +262,6 @@ const ListVenueModal = ({ onClose }) => {
             </p>
           </div>
 
-          {/* Knapper for og abryte eller liste venuen */}
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"

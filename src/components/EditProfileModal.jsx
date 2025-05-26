@@ -26,7 +26,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg max-h-[90vh] overflow-y-auto mx-4">
         <h2 className="text-xl font-semibold mb-4 text-[#00473E]">Edit Profile</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
 
@@ -56,6 +56,25 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
           {/* Bytte profil bilde */}
           <div>
             <label className="text-sm font-medium text-gray-700">Profile image (URL)</label>
+            {avatarUrl && (
+              <div className="flex items-center gap-2 mb-2">
+                <img
+                  src={avatarUrl}
+                  alt={avatarAlt || "Profile Preview"}
+                  className="w-20 h-20 object-cover rounded-full border"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAvatarUrl("");
+                    setAvatarAlt("");
+                  }}
+                  className="text-sm text-red-600 underline"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
             <input
               type="url"
               value={avatarUrl}
@@ -66,7 +85,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
               type="text"
               value={avatarAlt}
               onChange={(e) => setAvatarAlt(e.target.value)}
-              placeholder="Alt-tekst"
+              placeholder="Image description"
               className="w-full border border-gray-200 rounded px-3 py-2 mt-2 text-sm"
             />
           </div>
@@ -74,6 +93,25 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
           {/* Bytte banner PS banner brukes ikke i min app */}
           <div>
             <label className="text-sm font-medium text-gray-700">Banner image (URL)</label>
+            {bannerUrl && (
+              <div className="flex items-center gap-2 mb-2">
+                <img
+                  src={bannerUrl}
+                  alt={bannerAlt || "Banner Preview"}
+                  className="w-full h-20 object-cover border rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setBannerUrl("");
+                    setBannerAlt("");
+                  }}
+                  className="text-sm text-red-600 underline"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
             <input
               type="url"
               value={bannerUrl}
@@ -84,7 +122,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
               type="text"
               value={bannerAlt}
               onChange={(e) => setBannerAlt(e.target.value)}
-              placeholder="Alt-tekst"
+              placeholder="Image description"
               className="w-full border border-gray-200 rounded px-3 py-2 mt-2 text-sm"
             />
           </div>

@@ -55,7 +55,7 @@ const SeeBookingsModal = ({ venue, onClose }) => {
   return (
     // Modal-lag med bakgrunn og innhold
     <div className="fixed inset-0 z-[1000] bg-black bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded shadow-lg w-full max-w-lg relative max-h-[90vh] overflow-y-auto mx-4">
         {/* Lukkeknapp */}
         <button
           onClick={onClose}

@@ -99,7 +99,7 @@ const EditVenueModal = ({ venue, onClose, onSave, onDelete }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-auto">
-      <div className="bg-white p-6 rounded shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-white p-6 rounded shadow-lg w-full max-w-3xl max-h-[90vh] overflow-y-auto mx-4">
         <h2 className="text-xl font-semibold mb-4 text-[#00473E]">Edit Venue</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
