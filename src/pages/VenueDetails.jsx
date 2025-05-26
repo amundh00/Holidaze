@@ -8,7 +8,7 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { eachDayOfInterval } from "date-fns";
 
-// Fix Leaflet marker icons
+// Fikse leaflet ikonproblemer
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
@@ -96,10 +96,10 @@ const VenueDetails = () => {
 
   return (
     <div className="bg-[#F3EFEA] min-h-screen py-10 px-6">
-      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 bg-white p-8 rounded shadow">
-        {/* Image Section */}
+      <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-10 bg-white p-8 shadow">
+        {/* Bilde seksjon */}
         <div className="relative">
-          <img src={image} alt={venue.name} className="rounded w-full h-auto object-cover" />
+          <img src={image} alt={venue.name} className="w-full h-auto object-cover" />
 
           {venue.media?.filter((img) => img.url)?.length > 1 && (
             <>
@@ -113,7 +113,7 @@ const VenueDetails = () => {
           )}
         </div>
 
-        {/* Info Section */}
+        {/* Info seksjon */}
         <div>
           <div className="flex items-center justify-between mb-2">
             <h1 className="text-3xl font-bold text-[#00473E]">{venue.name}</h1>
@@ -146,7 +146,7 @@ const VenueDetails = () => {
 
           <button
             onClick={() => setShowModal(true)}
-            className="bg-[#00473E] text-white px-6 py-3 rounded hover:bg-[#033b33] transition"
+            className="bg-[#00473E] text-white px-6 py-3 hover:bg-[#033b33] transition"
           >
             Book this venue
           </button>
@@ -157,8 +157,8 @@ const VenueDetails = () => {
             bookedDates={bookedDates}
           />
 
-          {/* Leaflet Map */}
-          <div className="mt-6 h-60 w-full rounded overflow-hidden border border-gray-300">
+          {/* Leaflet kart */}
+          <div className="mt-6 h-60 w-full overflow-hidden border border-gray-300">
             {lat && lng && lat !== 0 && lng !== 0 ? (
               <MapContainer
                 center={[lat, lng]}

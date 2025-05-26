@@ -23,14 +23,14 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
 
   const navigate = useNavigate();
 
-  // Fetch bookings when modal opens to get disabled date ranges
+  // Hent bookinger for og lage en liste over datoer som er opptatt
   useEffect(() => {
     if (!isOpen || !venue?.id) {
       setDisabledRanges([]);
       return;
     }
     
-    // Reset disabled ranges when fetching new data
+    // Reset utilgjengelige datoer når en ny booking modal åpnes
     setDisabledRanges([]);
     
     fetch(`${API}/holidaze/venues/${venue.id}?_bookings=true`, {
@@ -44,11 +44,11 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
         return res.json();
       })
       .then(json => {
-        // Convert bookings to disabled date ranges for THIS specific venue
+        // Gjør om bookinger til utilgengelige datoer
         const bookings = json.data?.bookings || [];
         console.log(`Fetched ${bookings.length} bookings for venue ${venue.id}:`, venue.name);
         
-        // Create array of all disabled dates from booking ranges
+        // LKag en liste over alle utilgjengelige datoer
         const disabledDatesArray = [];
         
         bookings.forEach((booking, index) => {
@@ -62,12 +62,12 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
             toDate: toDate.toDateString(),
           });
           
-          // Generate all dates in the booking range
+          // Generer en liste over alle datoer i bookingperioden
           let current = new Date(fromDate);
-          current.setHours(0, 0, 0, 0); // Normalize to start of day
+          current.setHours(0, 0, 0, 0); 
           
           const end = new Date(toDate);
-          end.setHours(0, 0, 0, 0); // Normalize to start of day
+          end.setHours(0, 0, 0, 0); 
           
           while (current <= end) {
             disabledDatesArray.push(new Date(current));
@@ -86,7 +86,7 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
       });
   }, [isOpen, venue?.id, API, API_KEY, accessToken]);
 
-  // Use useCallback to prevent function recreation on every render
+  // Bruk useCallBack for og forhindere at funksjonen blir opprettet på nytt ved hver render
   const handleDateChange = useCallback((item) => {
     setRange(item.selection);
     setError(""); // Clear error when date changes
@@ -145,12 +145,11 @@ const BookingModal = ({ isOpen, onClose, venue }) => {
     }
   };
 
-  // Memoize the DateRange props to prevent unnecessary re-renders
   const dateRangeProps = useMemo(() => ({
     ranges: [range],
     onChange: handleDateChange,
     minDate: new Date(),
-    disabledDates: disabledRanges, // Use disabledDates instead of disabledRanges
+    disabledDates: disabledRanges, 
     moveRangeOnFirstSelection: false,
     showSelectionPreview: true,
     editableDateInputs: false,

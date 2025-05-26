@@ -1,4 +1,4 @@
-// src/pages/Login.jsx
+// Login side
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa";
@@ -15,7 +15,6 @@ const Login = () => {
     setError("");
 
     try {
-      // ✅ LOGIN WITH HOLIDAZE SCOPE
       const res = await fetch("https://v2.api.noroff.dev/auth/login?_holidaze=true", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -29,7 +28,7 @@ const Login = () => {
 
       const { data } = await res.json();
 
-      // ✅ Save correct token and profile name
+      // Lagre brukernavn og token i localStorage
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("user", data.name);
 
@@ -46,7 +45,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#EFEAE2]">
-      <div className="bg-white p-10 rounded shadow max-w-lg w-full">
+      <div className="bg-white p-10 shadow max-w-lg w-full">
         <h2 className="text-3xl font-bold text-[#00473E] text-center mb-2">Welcome back!</h2>
         {error && <p className="text-red-600 text-center mb-4">{error}</p>}
         <form onSubmit={handleLogin} className="space-y-6">
@@ -72,7 +71,7 @@ const Login = () => {
             />
             <FaLock className="absolute left-2 top-2.5 text-orange text-xl" />
           </div>
-          <button className="w-full bg-[#00473E] text-white py-2 rounded-md">Login</button>
+          <button className="w-full bg-[#00473E] text-white py-2">Login</button>
           <p className="text-sm text-center">
             Don’t have an account?{" "}
             <a href="/signup" className="text-orange underline">Sign up</a>

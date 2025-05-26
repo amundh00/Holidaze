@@ -30,7 +30,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
         <h2 className="text-xl font-semibold mb-4 text-[#00473E]">Edit Profile</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
 
-          {/* Name */}
+          {/* Rediger Navn */}
           <div>
             <label className="text-sm font-medium text-gray-700">Username</label>
             <input
@@ -42,7 +42,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
             />
           </div>
 
-          {/* Bio */}
+          {/* Rediger Bio */}
           <div>
             <label className="text-sm font-medium text-gray-700">Bio</label>
             <textarea
@@ -53,7 +53,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
             />
           </div>
 
-          {/* Avatar */}
+          {/* Bytte profil bilde */}
           <div>
             <label className="text-sm font-medium text-gray-700">Profile image (URL)</label>
             <input
@@ -71,7 +71,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
             />
           </div>
 
-          {/* Banner */}
+          {/* Bytte banner PS banner brukes ikke i min app */}
           <div>
             <label className="text-sm font-medium text-gray-700">Banner image (URL)</label>
             <input
@@ -89,7 +89,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
             />
           </div>
 
-          {/* Venue Manager Toggle */}
+          {/* Vil man være venuemanager boolean? */}
           <div className="flex items-center justify-between">
             <label className="text-sm text-gray-700 font-medium">I will list venues</label>
             <label className="relative inline-flex items-center cursor-pointer">
@@ -103,7 +103,7 @@ const EditProfileModal = ({ profile, onClose, onSave }) => {
             </label>
           </div>
 
-          {/* Buttons */}
+          {/* Knapper for og avbryte eller lagre endringer */}
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"

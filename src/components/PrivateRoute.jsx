@@ -1,16 +1,16 @@
-import React from "react";
+
 import { Navigate } from "react-router-dom";
 
 const PrivateRoute = ({ element }) => {
-  // Check if user exists in localStorage
+  // Sjekke om bruker allrede er logget inn med og henter brukerdata fra localStorage
   const user = localStorage.getItem("user");
 
-  // If no user is logged in, redirect to Login page
+  // Hvis bruker ikke er logget in omdiriger bruker til login siden
   if (!user) {
-    return <Navigate to="/login" />; // Redirects to login page
+    return <Navigate to="/login" />; // Omdirigering til login side
   }
 
-  // If user is logged in, render the protected element (AllVenues)
+  // Hvis bruker er logget inn, rendrer vi det beskyttede elementetene
   return element;
 };
 

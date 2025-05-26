@@ -93,7 +93,7 @@ function Home() {
 
     return (
         <>
-            {/* Hero */}
+            {/* Hero bilde */}
             <section className="relative w-full h-[600px]">
                 <img
                     src={heroImage}
@@ -101,7 +101,7 @@ function Home() {
                     className="absolute inset-0 w-full h-full object-cover"
                 />
 
-                {/* Booking box positioned inside hero */}
+                {/* Booking box positsjonert innenfor hero bilde (overlapper) */}
                 <div className="absolute left-1/2 bottom-[-64px] transform -translate-x-1/2 w-full px-4">
                     <section className="max-w-4xl mx-auto bg-white p-6 shadow-lg text-center">
                         <h2 className="text-3xl font-heading mb-2 text-green font-bold">Dream, Book, Escape.</h2>
@@ -146,7 +146,7 @@ function Home() {
                 </div>
             </section>
 
-            {/* Spacer after overlap */}
+            {/* legger til rom etter booking og hero */}
             <div className="bg-background pt-32 pb-48 min-h-[80vh]">
                 <VenueList venues={venues} layout="default" />
 

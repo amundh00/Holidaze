@@ -1,6 +1,4 @@
-// src/components/Footer.jsx
-
-import React from "react";
+// Footer komponenet
 
 const Footer = () => {
   return (

@@ -1,6 +1,5 @@
-// src/components/VenueList.jsx
+// List of all venues
 
-import React from "react";
 import VenueCard from "./VenueCard";
 
 const VenueList = ({ venues = [], layout = "default" }) => {

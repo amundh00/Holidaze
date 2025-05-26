@@ -57,14 +57,14 @@ const SignUp = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#EFEAE2]">
-      <form onSubmit={handleSubmit} className="bg-white p-10 rounded shadow max-w-lg w-full space-y-6">
+      <form onSubmit={handleSubmit} className="bg-white p-10 shadow max-w-lg w-full space-y-6">
         <h2 className="text-3xl font-bold text-[#00473E] text-center mb-2">Lag en konto</h2>
 
         {errorMessage && (
           <p className="text-red-600 text-center mb-2 text-sm">{errorMessage}</p>
         )}
 
-        {/* VenueManager Switch */}
+        {/* Velg om man skal være venuemanger eller ikke */}
         <div className="flex items-center justify-between">
           <label className="text-sm text-gray-700 font-medium">Planlegger du å liste venues?</label>
           <label className="relative inline-flex items-center cursor-pointer">
@@ -74,11 +74,11 @@ const SignUp = () => {
               onChange={() => setVenueManager(!venueManager)}
               className="sr-only peer"
             />
-            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green rounded-full peer dark:bg-gray-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange" />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-green peer dark:bg-gray-300 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange" />
           </label>
         </div>
 
-        {/* Name Field */}
+        {/* Navn felt */}
         <div className="relative">
           <input
             type="text"
@@ -91,7 +91,7 @@ const SignUp = () => {
           <FaUser className="absolute left-2 top-2.5 text-orange" />
         </div>
 
-        {/* Email Field */}
+        {/* E-post felt */}
         <div className="relative">
           <input
             type="email"
@@ -104,7 +104,7 @@ const SignUp = () => {
           <FaEnvelope className="absolute left-2 top-2.5 text-orange" />
         </div>
 
-        {/* Password Field */}
+        {/* Passord felt */}
         <div className="relative">
           <input
             type="password"
@@ -117,12 +117,12 @@ const SignUp = () => {
           <FaLock className="absolute left-2 top-2.5 text-orange text-lg" />
         </div>
 
-        {/* Submit Button */}
-        <button type="submit" className="w-full bg-[#00473E] text-white py-2 rounded-md">
+        {/* Lagre knapp */}
+        <button type="submit" className="w-full bg-[#00473E] text-white py-2">
           Registrer deg
         </button>
 
-        {/* Login Redirect */}
+        {/* Omdirigering til login side */}
         <p className="text-sm text-center">
           Har du allerede en konto?{" "}
           <a href="/login" className="text-orange underline">Logg inn</a>

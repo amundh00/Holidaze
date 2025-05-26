@@ -1,4 +1,4 @@
-import React from "react";
+// Kort for og vise en venue med bilde, tittel, beskrivelse pris etc og se mer knapp
 import { Link } from "react-router-dom";
 
 const VenueCard = ({ venue, layout = "default" }) => {

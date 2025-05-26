@@ -1,5 +1,4 @@
-import React from "react";
-
+// For og vise bookingene til en bruker
 const MyBookings = ({ bookings, onUnbook }) => {
   if (bookings.length === 0) {
     return <p className="text-gray-500">Ingen kommende bookinger funnet.</p>;

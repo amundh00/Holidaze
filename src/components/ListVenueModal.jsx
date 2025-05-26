@@ -3,7 +3,6 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Fix marker icon paths for Vite
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
@@ -162,7 +161,7 @@ const ListVenueModal = ({ onClose }) => {
             required
           />
 
-          {/* Facility toggles */}
+          {/* Knapper for og velge faciliteter */}
           <div className="pt-2">
             <label className="block text-sm font-medium text-gray-700 mb-2">Facilities</label>
             <div className="grid grid-cols-2 gap-2">
@@ -183,7 +182,7 @@ const ListVenueModal = ({ onClose }) => {
             </div>
           </div>
 
-          {/* Map Picker */}
+          {/* Kart velger leaflet */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Choose location</label>
             <p className="text-xs text-gray-500 mb-2">Click on the map to choose location of venue.</p>
@@ -231,7 +230,7 @@ const ListVenueModal = ({ onClose }) => {
             </p>
           </div>
 
-          {/* Buttons */}
+          {/* Knapper for og abryte eller liste venuen */}
           <div className="flex justify-end gap-2 pt-2">
             <button
               type="button"

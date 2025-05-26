@@ -1,16 +1,16 @@
-// Improved UI for EditVenueModal with wider modal and scrollable content
 import React, { useState } from "react";
 import { MapContainer, TileLayer, Marker, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
-// Fix Leaflet's default marker icon paths
+// Konfigurer standard ikon for Leaflet slik at markørene vises riktig
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-icon.png",
   shadowUrl: "https://unpkg.com/leaflet@1.9.3/dist/images/marker-shadow.png",
 });
 
+// Komponent for å håndtere klikk på kartet og oppdatere posisjon
 const LocationPicker = ({ location, setLocation }) => {
   useMapEvents({
     click(e) {
@@ -22,10 +22,13 @@ const LocationPicker = ({ location, setLocation }) => {
     },
   });
 
+  // Viser markør kun hvis både lat og lng er satt
   return location.lat && location.lng ? <Marker position={[location.lat, location.lng]} /> : null;
 };
 
+// Modal for å redigere informasjon om et venue
 const EditVenueModal = ({ venue, onClose, onSave }) => {
+  // Opprett lokal state for hvert felt som kan redigeres
   const [name, setName] = useState(venue.name);
   const [description, setDescription] = useState(venue.description);
   const [price, setPrice] = useState(venue.price);
@@ -34,10 +37,12 @@ const EditVenueModal = ({ venue, onClose, onSave }) => {
   const [meta, setMeta] = useState(venue.meta || {});
   const [location, setLocation] = useState(venue.location || { lat: 60.39, lng: 5.32 });
 
+  // Funksjon for å slå av/på metadata som wifi, parkering, osv.
   const toggleMeta = (key) => {
     setMeta((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
+  // Når brukeren sender inn skjemaet lagres endringene og lukker modalen
   const handleSubmit = (e) => {
     e.preventDefault();
 

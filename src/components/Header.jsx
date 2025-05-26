@@ -1,24 +1,24 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom"; // Use navigate hook to programmatically navigate
+import { Link, useNavigate } from "react-router-dom"; 
 import { FaUser, FaBars, FaTimes } from "react-icons/fa";
 
 const Header = () => {
   const user = localStorage.getItem("user");
   const [menuOpen, setMenuOpen] = useState(false);
-  const navigate = useNavigate(); // Hook to navigate programmatically
+  const navigate = useNavigate(); 
 
   const handleVenuesClick = () => {
-    // Navigate to the venues page directly
+    // Navigering til all venues side
     navigate("/venues");
   };
 
   const handleLoginLogout = () => {
     if (user) {
-      // Log out the user
+      // Log ut brukeren
       localStorage.removeItem("user");
-      window.location.reload(); // Reload the page to reflect the changes
+      window.location.reload(); // last siden på nytt for å oppdatere brukerstatus
     } else {
-      // Navigate to the login page if the user is not logged in
+      // Navigering til innloggingssiden hvis brukeren ikke er logget inn
       navigate("/login");
     }
   };
@@ -26,12 +26,10 @@ const Header = () => {
   return (
     <header className="bg-white border-b shadow-sm px-4 py-4">
       <div className="max-w-6xl mx-auto grid grid-cols-3 items-center">
-        {/* Left */}
         <div>
           {user && <FaUser className="text-brown text-xl md:hidden" />}
         </div>
 
-        {/* Center logo */}
         <div className="text-center">
           <Link to="/" onClick={() => setMenuOpen(false)}>
             <h1 className="text-3xl font-heading text-brown md:text-4xl pt-2">
@@ -40,9 +38,8 @@ const Header = () => {
           </Link>
         </div>
 
-        {/* Right */}
         <div className="flex justify-end items-center gap-2">
-          {/* Mobile: Hamburger */}
+          {/* Mobil Meny */}
           <button
             className="text-brown text-xl md:hidden p-1"
             onClick={() => setMenuOpen(!menuOpen)}
@@ -66,7 +63,7 @@ const Header = () => {
         </div>
       </div>
 
-      {/* Desktop nav */}
+      {/* Desktop navigasjon */}
       <nav className="hidden md:flex justify-center gap-8 mt-2 text-textGray text-base font-medium">
         <Link to="/">Home</Link>
         <button onClick={handleVenuesClick} className="text-base font-medium text-textGray">
@@ -79,7 +76,7 @@ const Header = () => {
         )}
       </nav>
 
-      {/* Mobile nav */}
+      {/* Mobile navigasjon */}
       {menuOpen && (
         <nav className="flex flex-col items-center gap-3 mt-3 text-textGray text-base font-medium md:hidden">
           <Link to="/" onClick={() => setMenuOpen(false)}>Home</Link>

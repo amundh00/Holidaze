@@ -1,7 +1,8 @@
-// src/components/MetaFilter.jsx
-import React from "react";
+// liste over de filterene som venuene kan ha
+
 import { FaWifi, FaParking, FaCoffee, FaPaw } from "react-icons/fa";
 
+// Ikoner for hver filtertype
 const icons = {
   wifi: <FaWifi />,
   parking: <FaParking />,
@@ -18,7 +19,10 @@ const MetaFilter = ({ filters, toggleFilter }) => {
           <button
             key={key}
             onClick={() => toggleFilter(key)}
-            className={`text-3xl transition-colors duration-200 ${filters[key] ? "text-green" : "text-gray-400"}`}
+            // Bruk oransje (#FF8358) når aktiv
+            className={`text-3xl transition-colors duration-200 ${
+              filters[key] ? "text-[#FF8358]" : "text-gray-400"
+            }`}
             title={key}
           >
             {icons[key]}
@@ -29,4 +33,4 @@ const MetaFilter = ({ filters, toggleFilter }) => {
   );
 };
 
-export default MetaFilter;  
+export default MetaFilter;

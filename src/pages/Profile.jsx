@@ -36,7 +36,7 @@ const Profile = () => {
       if (!res.ok) throw new Error("Failed to load venues");
       const { data } = await res.json();
 
-      // Fetch each venue with owner
+      // hent alle venues med eier
       const detailedVenues = await Promise.all(
         data.map((venue) =>
           fetch(`${API}/holidaze/venues/${venue.id}?_owner=true`, {
@@ -115,7 +115,7 @@ const Profile = () => {
 
     if (!res.ok) throw new Error("Failed to cancel booking");
 
-    // Remove the booking from local state
+    // Ta vekk booking fra listen
     setBookings((prev) => prev.filter((b) => b.id !== bookingId));
   } catch (err) {
     alert("Could not cancel booking: " + err.message);
@@ -128,20 +128,20 @@ const Profile = () => {
 
   return (
     <div className="bg-[#ece5dc] min-h-screen py-10 px-4">
-      <div className="max-w-4xl mx-auto bg-transparent p-8 rounded text-center">
+      <div className="max-w-4xl mx-auto bg-transparent p-8 text-center">
         {profile.avatar?.url ? (
           <img
             src={profile.avatar.url}
             alt={profile.avatar.alt || "Avatar"}
-            className="mx-auto mb-4 w-24 h-24 rounded-full object-cover border"
+            className="mx-auto mb-4 w-24 h-24 object-cover border"
           />
         ) : (
-          <div className="mx-auto mb-4 w-24 h-24 rounded-full bg-gray-300" />
+          <div className="mx-auto mb-4 w-24 h-24 bg-gray-300" />
         )}
 
         <h1 className="text-xl font-semibold text-[#4e392f]">{profile.name}</h1>
 
-        {/* ✅ Show if user is a Venue Manager */}
+        {/* Vis om bruker er VenueManager */}
         {profile.venueManager && (
           <div className="mt-1 mb-2">
             <span className="inline-block bg-orange text-white text-xs font-semibold px-3 py-1">
@@ -193,12 +193,12 @@ const Profile = () => {
           </div>
         )}
 
-        {/* If not a venue manager, skip tab UI */}
+        {/* Hvis bruker ikke er venuemanager så vises ikke den tabben */}
         {!profile.venueManager && (
           <h2 className="text-lg font-medium text-gray-800 mb-4">My Bookings:</h2>
         )}
 
-        {/* Render tab content */}
+        {/* vis venuue manager tab */}
         {activeTab === "bookings" && (
           <MyBookings bookings={bookings} onUnbook={handleUnbook} />
         )}
@@ -227,7 +227,7 @@ const Profile = () => {
             if (!res.ok) throw new Error("Failed to update profile");
 
             const { data } = await res.json();
-            setProfile(data); // update local state
+            setProfile(data);
           } catch (err) {
             alert("Feil ved oppdatering av profil: " + err.message);
           }

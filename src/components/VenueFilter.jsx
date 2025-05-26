@@ -1,4 +1,4 @@
-// src/components/VenueFilter.jsx
+// Filtreringskomponenet til venues
 import { useState } from "react";
 
 const VenueFilter = ({ onFilter }) => {

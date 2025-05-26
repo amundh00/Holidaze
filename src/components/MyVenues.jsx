@@ -1,3 +1,4 @@
+// Vise alle venuene som en VenueManger har laget
 import { useState } from "react";
 import EditVenueModal from "./EditVenueModal";
 import SeeBookingsModal from "./SeeBookingsModal";
@@ -62,7 +63,7 @@ const MyVenues = ({ venues }) => {
               if (!res.ok) throw new Error("Kunne ikke oppdatere venue");
 
               alert("Venue oppdatert!");
-              setEditingVenue(null); // optionally close on success
+              setEditingVenue(null);
             } catch (err) {
               alert("Feil: " + err.message);
             }
