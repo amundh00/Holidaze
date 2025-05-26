@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaUser, FaLock, FaEnvelope } from "react-icons/fa";
 
 const SignUp = () => {
@@ -144,7 +144,7 @@ const SignUp = () => {
         {/* Omdirigering til login side */}
         <p className="text-sm text-center">
           Har du allerede en konto?{" "}
-          <a href="/login" className="text-orange underline">Logg inn</a>
+          <Link to="/login" className="text-orange underline">Logg inn</Link>
         </p>
       </form>
     </div>
