@@ -47,19 +47,7 @@ const Header = () => {
           >
             {menuOpen ? <FaTimes /> : <FaBars />}
           </button>
-
-          {/* Desktop: Logout/Profile */}
-          {user && (
-            <div className="hidden md:flex items-center gap-2">
-              <FaUser className="text-brown text-xl" />
-              <button
-                className="text-sm text-textGray underline"
-                onClick={handleLoginLogout}
-              >
-                Log Out
-              </button>
-            </div>
-          )}
+          
         </div>
       </div>
 
@@ -70,7 +58,12 @@ const Header = () => {
           Venues
         </button>
         {user ? (
-          <Link to="/profile">Profile</Link>
+          <div className="flex items-center gap-4">
+            <Link to="/profile">Profile</Link>
+            <button onClick={handleLoginLogout} className="text-sm underline text-textGray">
+              Log Out
+            </button>
+          </div>
         ) : (
           <Link to="/login">Login</Link>
         )}

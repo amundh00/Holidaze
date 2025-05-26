@@ -3,6 +3,7 @@ import EditProfileModal from "../components/EditProfileModal";
 import ListVenueModal from "../components/ListVenueModal";
 import MyBookings from "../components/MyBookings";
 import MyVenues from "../components/MyVenues";
+import { useNavigate } from "react-router-dom";
 
 
 
@@ -19,6 +20,14 @@ const Profile = () => {
   const [showListVenueModal, setShowListVenueModal] = useState(false);
   const [activeTab, setActiveTab] = useState("bookings");
   const [venues, setVenues] = useState([]);
+  const navigate = useNavigate();
+
+
+  useEffect(() => {
+    if (!username || !accessToken) {
+      navigate("/login");
+    }
+  }, [username, accessToken, navigate]);
 
   useEffect(() => {
   if (!username || !accessToken || !profile?.venueManager) return;

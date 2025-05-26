@@ -13,6 +13,7 @@ function Home() {
     const [guests, setGuests] = useState(1);
     const [filtersActive, setFiltersActive] = useState(false);
     const limit = 12;
+    const [formError, setFormError] = useState("");
 
     useEffect(() => {
         const controller = new AbortController();
@@ -65,23 +66,33 @@ function Home() {
     };
 
     const handleCheckAvailability = () => {
-        if (!checkIn || !checkOut) return;
+        setFormError(""); // Nullstill tidligere feil
+
+        if (!checkIn || !checkOut || !guests) {
+            setFormError("Vennligst fyll inn innsjekksdato, utsjekksdato og antall gjester før du søker.");
+            return;
+        }
 
         const checkInDate = new Date(checkIn);
         const checkOutDate = new Date(checkOut);
+
+        if (checkInDate >= checkOutDate) {
+            setFormError("Utsjekksdato må være etter innsjekksdato.");
+            return;
+        }
 
         const filtered = allVenues.filter((venue) => {
             if (guests > venue.maxGuests) return false;
             if (!Array.isArray(venue.bookings) || venue.bookings.length === 0) return true;
 
             const hasConflict = venue.bookings.some((booking) => {
-                const bookedFrom = new Date(booking.dateFrom);
-                const bookedTo = new Date(booking.dateTo);
-                return (
-                    (checkInDate >= bookedFrom && checkInDate < bookedTo) ||
-                    (checkOutDate > bookedFrom && checkOutDate <= bookedTo) ||
-                    (checkInDate <= bookedFrom && checkOutDate >= bookedTo)
-                );
+            const bookedFrom = new Date(booking.dateFrom);
+            const bookedTo = new Date(booking.dateTo);
+            return (
+                (checkInDate >= bookedFrom && checkInDate < bookedTo) ||
+                (checkOutDate > bookedFrom && checkOutDate <= bookedTo) ||
+                (checkInDate <= bookedFrom && checkOutDate >= bookedTo)
+            );
             });
 
             return !hasConflict;
@@ -89,7 +100,7 @@ function Home() {
 
         setVenues(filtered);
         setFiltersActive(true);
-    };
+        };
 
     return (
         <>
@@ -107,6 +118,11 @@ function Home() {
                         <h2 className="text-3xl font-heading mb-2 text-green font-bold">Dream, Book, Escape.</h2>
                         <p className="text-textGray mb-6">Check to see if your dream venue is available!</p>
                         <div className="flex flex-wrap justify-center gap-6 items-end">
+                        {formError && (
+                            <div className="w-full text-center text-sm text-red-600 mt-2">
+                                {formError}
+                            </div>
+                            )}
                             <div className="relative">
                                 <label className="block text-sm mb-1 text-left">Check-in</label>
                                 <input

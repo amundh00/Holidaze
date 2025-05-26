@@ -23,6 +23,10 @@ const AllVenuesUpdated = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
+
   const navigate = useNavigate();
 
   // Henter inn alle venues (paginert API, loop til alt er hentet)
@@ -116,8 +120,9 @@ const AllVenuesUpdated = () => {
   };
 
   return (
-    <div className="bg-background min-h-screen">
+    <div className="bg-background min-h-screen pb-32">
       <div className="max-w-6xl mx-auto px-4 pt-12">
+
         {/* Overskrift */}
         <h2 className="text-3xl font-heading text-center text-green mb-8">All Venues</h2>
 
