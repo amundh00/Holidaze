@@ -80,7 +80,7 @@ const Login = () => {
           <button className="w-full bg-[#00473E] text-white py-2">Login</button>
           <p className="text-sm text-center">
             Don’t have an account?{" "}
-            <a href="/signup" className="text-orange underline">Sign up</a>
+            <Link to="/signup" className="text-orange underline">Sign up</Link>
           </p>
         </form>
       </div>
