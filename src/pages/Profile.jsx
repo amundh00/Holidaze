@@ -136,7 +136,16 @@ const Profile = () => {
   if (!profile) return <div className="p-4">Loading profile...</div>;
 
   return (
-    <div className="bg-[#ece5dc] min-h-screen py-10 px-4">
+    <div className="bg-[#ece5dc] min-h-screen">
+      {profile.banner?.url && (
+        <div className=" overflow-hidden max-h-64">
+          <img
+            src={profile.banner.url}
+            alt={profile.banner.alt || "Banner"}
+            className="w-full object-cover h-64"
+          />
+        </div>
+      )}
       <div className="max-w-4xl mx-auto bg-transparent p-8 text-center">
         {profile.avatar?.url ? (
           <img

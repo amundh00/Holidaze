@@ -27,7 +27,11 @@ const Header = () => {
     <header className="bg-white border-b shadow-sm px-4 py-4">
       <div className="max-w-6xl mx-auto grid grid-cols-3 items-center">
         <div>
-          {user && <FaUser className="text-brown text-xl md:hidden" />}
+          {user && (
+            <Link to="/profile">
+              <FaUser className="text-brown text-xl md:hidden" />
+            </Link>
+          )}
         </div>
 
         <div className="text-center">
