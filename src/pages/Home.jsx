@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchVenues } from "../utils/fetchData";
 import VenueList from "../components/VenueList";
-import heroImage from "../assets/images/HeroHotel.png";
+import heroImage from "../assets/images/HeroHotel.webp";
 
 function Home() {
     const [allVenues, setAllVenues] = useState([]);
@@ -105,7 +105,7 @@ function Home() {
     return (
         <>
             {/* Hero bilde */}
-            <section className="relative w-full h-[600px]">
+            <section className="relative w-full h-[600px] font-body">
                 <img
                     src={heroImage}
                     alt="Hotel"
@@ -114,7 +114,7 @@ function Home() {
 
                 {/* Booking box positsjonert innenfor hero bilde (overlapper) */}
                 <div className="absolute left-1/2 bottom-[-64px] transform -translate-x-1/2 w-full px-4">
-                    <section className="max-w-4xl mx-auto bg-white p-6 shadow-lg text-center">
+                    <section className="max-w-4xl mx-auto bg-white p-6 shadow-lg text-center font-body">
                         <h2 className="text-3xl font-heading mb-2 text-green font-bold">Dream, Book, Escape.</h2>
                         <p className="text-textGray mb-6">Check to see if your dream venue is available!</p>
                         <div className="flex flex-wrap justify-center gap-6 items-end">
@@ -163,7 +163,7 @@ function Home() {
             </section>
 
             {/* legger til rom etter booking og hero */}
-            <div className="bg-background pt-32 pb-48 min-h-[80vh]">
+            <div className="bg-background pt-32 pb-48 min-h-[80vh] font-body">
                 <VenueList venues={venues} layout="default" />
 
                 {hasMore && !filtersActive && (
